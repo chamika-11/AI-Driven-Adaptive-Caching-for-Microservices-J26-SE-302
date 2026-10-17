@@ -1,0 +1,97 @@
+import pathlib
+
+p = pathlib.Path("IMPLEMENTATION_DECISIONS.md")
+s = p.read_text(encoding="utf-8")
+
+
+def rep(old, new):
+    global s
+    n = s.count(old)
+    assert n == 1, (n, old[:100])
+    s = s.replace(old, new)
+
+
+def set_status(rid, text):
+    """Replace a trailing 'NOT STARTED |' on the row that starts with | rid |."""
+    global s
+    a = s.index(f"| {rid} |")
+    b = s.index("\n", a)
+    line = s[a:b]
+    assert line.endswith("| NOT STARTED |"), (rid, line[-50:])
+    s = s[:a] + line[: -len("NOT STARTED |")] + text + " |" + s[b:]
+
+
+# ---- banner -----------------------------------------------------------------------------------
+a = s.index("> **Status 2026-10-15:")
+b = s.index("\n", a)
+s = s[:a] + ("> **Status 2026-10-15: M0–M6 implemented and gated; M7 (the no-DQN signal test) and M8+ (tabular Q, DQN) "
+             "not started. No learned agent exists.** `pytest`: see the M6 change-log row. The non-learned baseline set "
+             "has been evaluated ONCE on evaluation seeds 0–9 (`results/results.csv`, 4,260 rows, `harsh` arm, three "
+             "capacities, synthetic only). Primary capacity and protocol are pre-registered "
+             "(`docs/PREREGISTRATION.md`, incl. the labelled post-hoc Addendum M6-B). No real-trace *experiment* has been "
+             "run (§2b, `docs/DATA_ACCESS.md`). Evidence documents: `docs/M4_SIM_DIAGNOSTIC.md`, "
+             "`docs/PLACEMENT_SIGNAL.md`, `docs/REWARD_SCALING.md`, `docs/M6_BASELINES.md`. A requirement is marked "
+             "`DONE` only with the test that proves it named next to it.") + s[b:]
+
+# ---- R-B -------------------------------------------------------------------------------------------
+set_status("R-B1", "**DONE (test: `test_registry_is_the_frozen_list`; numbers in `results/results.csv`, `random:45`)** — OHR 0.346 ± 0.011 (1%), 0.770 ± 0.002 (25%); it beats every fixed action at 1% (C-41).")
+set_status("R-B3", "**PARTIAL (`docs/M6_BASELINES.md`)**: fixed TTL × all 3 placements × all 3 priorities (45), statistics TTL (mean/median/p10 × redis/both), AIMD (4), zero-stale oracle TTL (bound) DONE with tests `test_stat_ttl_snaps_in_log_space_and_defaults_to_3600`, `test_aimd_rules_and_bounds`, `test_zero_stale_oracle_ttl_buckets`. The ladder uses the five action buckets, not {1, 60, 300, 1800, ∞} (no ∞ action exists). NOT done: global-oracle TTL (needs a staleness budget; every fixed point is already on the frontier), no-TTL + invalidation.")
+set_status("R-B4", "**PARTIAL (POST-HOC, Addendum M6-B)**: always-local / always-redis / always-both (fixed), hash partition (3), size threshold (3), frequency threshold (3) DONE (tests `test_hash_size_freq_placement_rules`, `test_partitioning_rules_use_both_tiers_unlike_any_fixed_action`). NOT done: GDSF-style score, placement oracle.")
+set_status("R-B5", "**DONE for unit-size objects (tests: `test_belady_matches_brute_force_optimum` — equals an exhaustive optimum on 150 random small traces for both variants, `test_bound_is_valid_for_a_real_zero_stale_policy_on_unit_size_objects`)**; byte-level bound not computed (variable-size OPT is NP-hard); reported as an OBJECT hit-ratio bound only.")
+set_status("R-B6", "**DONE (family `pred_ttl`, 2 points)**")
+set_status("R-B7", "**DONE for the grids as frozen (docs/PREREGISTRATION.md M6-3)**: every grid point is evaluated on test and enters the frontier; per-family scalar selection uses validation only (test `test_t2_selects_on_validation_and_reports_test`). \"Offline-tuned baseline the agent may not use\": the whole-grid frontier plus the future-knowledge bounds.")
+
+# ---- R-E -------------------------------------------------------------------------------------------
+set_status("R-E1", "**DONE for baselines (tests: `test_context_uses_fit_slice_only_and_equal_capacity`, `test_slices_warmup_and_row_validity`)**; the \"test touched once\" rule is enforced by an idempotent run_id check in `scripts/run_baselines.py` (a rerun adds 0 rows). For learned agents it is a procedure not yet exercised.")
+set_status("R-E2", "**PARTIAL**: fixed-fraction (10% of the slice) variant DONE and tested; the \"cache filled k times\" variant NOT implemented.")
+set_status("R-E3", "**PARTIAL**: capacities 1% (PRIMARY, pre-registered M6-1), 5% and 25% evaluated; {0.1, 0.5, 10}% not run (M11).")
+set_status("R-E4", "**NOT DONE** — one synthetic generator family only; no real trace (BLOCKED, Q-2).")
+set_status("R-E7", "**PARTIAL**: OHR, BHR, stale-read rate, stale|hit, stale age mean/p95, backend per 1k, latency mean/p50/p95/p99/p99.9 (overall; not split by hit/miss path), capacity evictions and TTL expirations per 1k reads, TTL median / over-TTL fraction / TTL MAE vs oracle, placement shares, action entropy DONE (`evaluation.py`). NOT done: per-tier memory, churn, placement regret, latency split by path.")
+a = s.index("| R-E12 |")
+b = s.index("\n", a)
+line = s[a:b]
+s = s[:a] + line.replace("**Schema DONE", "**T2 and F2 generated by one command (`scripts/make_f2_t2.py`; tests `test_t2_selects_on_validation_and_reports_test`, `test_frontier_and_paired_delta_and_figure`); schema DONE", 1) + s[b:]
+
+# ---- decisions -------------------------------------------------------------------------------------
+rep("| D-18 | Proposed repository layout:",
+    "| D-36 | **Primary capacity: L2 = 1% of unique-object footprint, L1 = 10% of L2, `harsh`**; 5% and 25% are always-reported secondaries. Named in `docs/PREREGISTRATION.md` M6-1 before any baseline ran; the value is the one proposed on 2026-10-14 (Q-7), not chosen from results. | The cost was stated in advance: at 1% TTL is nearly inert for hit ratio. | ACTIVE |\n"
+    "| D-37 | Baseline set frozen at 67 heuristic points + 4 bounds; nine placement-rule points (hash / size / frequency) were added post-hoc BEFORE evaluation seeds ran and are labelled `post-hoc` in `results.csv`. | A baseline set without capacity-partitioning rules would flatter a learned placement policy (C-41). | ACTIVE |\n"
+    "| D-38 | Frontier = non-dominated set and its concave envelope (extended flat to the right), built from seed-averaged heuristic points; bounds never enter it. The pre-registered primary statistic is the per-seed paired ΔOHR against the envelope of the OTHER heuristics. | M6-4. Note the envelope's \"randomisation lies on the hull\" rationale is only approximate here (C-41: mixing can lie ABOVE the hull). | ACTIVE |\n"
+    "| D-39 | Unit-size Belady uses capacity = (L1 + L2 bytes) / mean unique-object size; reported as an OBJECT bound only. | Variable-size OPT is NP-hard; the MD says to report `--ignore-obj-size` Belady and state that no byte bound was computed. | ACTIVE |\n"
+    "| D-18 | Proposed repository layout:")
+
+# ---- contradictions / findings ------------------------------------------------------------------------
+rep("| C-32 | Responsibility table:",
+    "| C-41 | C-37 (this REVISES it) | C-37 concluded placement carries little signal (tested at 25% capacity with class-level rules). | At the primary 1% capacity `random:45` beats all 45 fixed actions (OHR 0.346 vs 0.332, +1.39 pp, 10/10 seeds); diagnosis: random over placements alone 0.344, over TTL alone 0.325, over priority alone 0.335. Mixing `local` and `redis` uses L1 and L2 as DISJOINT capacity, which no fixed action can. Deliberate partitioning (`place_size:p25`) reaches 0.363 (+3.07 pp, se 0.32, 10/10) at +0.34 pp stale. So placement has real value at small capacity — as capacity partitioning, not as latency/staleness trade-off; at 25% it is small, as C-37 found. | RESOLVED (finding); the learned agent must be compared with these rules, not with `fixed:redis` |\n"
+    "| C-42 | — | The baselines' predicted/statistic TTLs approximate \"TTL = time to next write\". | At 25% the zero-stale oracle TTL reaches OHR 0.803 at 0.02% stale; the best baseline with comparable staleness (`fixed:redis/30s`) has 0.50 at 0.2% (+30.3 pp, se 0.16, 10/10) and the best predictor-based baseline (`stat_ttl:p10`) 0.79 at 2.3% stale. The headroom is on the stale axis and is information-limited (statistics fitted on the first 30% of the trace). | OPEN — this is what an agent with write-recency features could capture |\n"
+    "| C-43 | — | M6 gate: \"oracle-TTL has zero stale reads\". | Not literally true: 0.01–0.02% (redis), 0.05% (both). A key rewritten within 5 s still receives the 5 s minimum bucket, and the copy outlives the fetch by up to the fetch latency. Documented in `docs/M6_BASELINES.md`; the bound is labelled \"near zero\". | RESOLVED (documented) |\n"
+    "| C-44 | — | Stale-read rates are summarised by their mean. | Between-seed sd is as large as the mean (fixed redis/3600 at 1%: 0.00–1.37% across seeds; 5%: 0.21–10.7%). The seed-averaged frontier hides this; comparisons must be paired by seed (the pre-registered statistic is). | RESOLVED (procedure) |\n"
+    "| C-32 | Responsibility table:")
+
+rep("| Q-7 | Name the \"realistic\" capacity (primary endpoint) before any training run. | Before first experiment | 1% of footprint for L2, L1 = 10% of L2. |",
+    "| Q-7 | Name the \"realistic\" capacity (primary endpoint) before any training run. | Before first experiment | 1% of footprint for L2, L1 = 10% of L2. **RESOLVED 2026-10-15 by D-36.** |")
+
+# ---- M6 gate in section 9 --------------------------------------------------------------------------
+a = s.index("| M6 | Non-learned policies")
+b = s.index("\n", a)
+line = s[a:b]
+assert line.endswith("| here |"), line[-30:]
+s = s[:a] + line[:-len("| here |")] + ("| here — **GATE PASSED 2026-10-15 with one literal miss**: fixed-ladder and random numbers recorded; "
+                                       "oracle-TTL stale is 0.01–0.05%, not exactly 0 (C-43); full suite green. "
+                                       "Evidence `docs/M6_BASELINES.md` |") + s[b:]
+
+s = s.rstrip("\n") + "\n" + (
+    "| 2026-10-15 | **M6 implemented, pre-registered and run.** Pre-registration (primary capacity 1%, protocol, frozen baseline "
+    "list, frontier statistic) was written BEFORE any M6 code ran. New: `src/rlcache/{evaluation.py,baselines/{policies,bounds}.py,"
+    "analysis/{pareto,report}.py}`, `scripts/{run_baselines,make_f2_t2}.py`, `tests/test_baselines_eval.py` (26 tests), "
+    "`docs/M6_BASELINES.md`; engine `Metrics` gained measured-window utility counters; results schema gained `family`, `utility`. "
+    "Brute-force check: the Belady bounds equal an exhaustive optimum on 150 small random traces; mutation checks caught a "
+    "dropped warm-up exclusion, bounds leaking into the frontier, and writes not evicting in the TTL-constrained bound (one "
+    "mutation was an equivalent mutant, not a test gap). A development run (seed 100) showed `random:45` beating all fixed "
+    "actions; diagnosis attributed it to placement partitioning; nine placement-rule baselines were added post-hoc BEFORE "
+    "evaluation seeds ran, disclosed in Addendum M6-B and labelled in the data. One-time evaluation run: 71 policies × 2 splits "
+    "× 3 capacities × seeds 0–9 = 4,260 rows (740 s). Findings C-41 (revises C-37), C-42, C-43, C-44. A shell-escaping slip "
+    "twice left a literal newline inside a string in `report.py`/a doc patch and was fixed; no result was affected. Next: M7 "
+    "(signal test: statistics-TTL driven by predictor accuracy 1.0 vs 0.0 must differ in stale-read rate) then M8 (tabular Q). |\n")
+p.write_text(s, encoding="utf-8")
+print("ok", len(s))

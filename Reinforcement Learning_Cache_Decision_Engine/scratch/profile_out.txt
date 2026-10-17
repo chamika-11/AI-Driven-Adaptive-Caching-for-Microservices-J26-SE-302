@@ -1,0 +1,24 @@
+== data/raw/twitter_samples_2020Mar/cluster012
+  raw: 0,SbDacwXjDwKPOgfdaTy0VZWDJYRXeOx4O5+Drbq5Ejf=,44,6,1,set,300
+  raw: 0,AxJHyUd4QO0Vnv4Ml1Wi/hNPFLIMSF47Q5yJLqzSdc8=,44,20726,2,get,0
+  raw: 0,gZEjYfbpZdGl7zyuB2956bl+rc1v1bRRaXvGm1X3QsW=,44,42,3,set,300
+  raw: 0,AylNBhQfSB9k2EhQ4kswoILOAo0MQI2nc/+f78n1Fyf=,44,6,4,set,300
+  raw: 0,KY98Kk4rVypI05QLNEsBpvr8O4RcDbLG4NJUhPD5CgQ=,44,6,5,set,300
+  parse: {'rows_read': 1000000, 'rows_kept': 1000000, 'rows_bad_fieldcount': 0, 'rows_bad_value': 0, 'rows_unknown_op': 0, 'rows_out_of_order': 532, 'rows_dropped_by_key_sampling': 0, 'stopped_early_at_ts': None}
+  profile: {"rows": 1000000, "span_s": 211.0, "unique_keys": 797001, "ops": {"get": 198797, "set": 801203}, "write_fraction": 0.801203, "keys_written": 790048, "writes_per_written_key_median": 1.0, "writes_per_written_key_max": 11, "write_ttl_top": [[300, 782875], [299, 18321], [301, 7]], "footprint_bytes": 890157545}
+== data/raw/twitter_samples_2020Mar/cluster052
+  raw: 0,q:q:1:8WTwl7huJeQ,17,249,1,get,0
+  raw: 0,q:q:1:MYY8VvHze8,16,0,2,get,0
+  raw: 0,yDqF:gY:1AJrn9G9JKGxJ9KCr9C,27,27,3,get,0
+  raw: 0,q:q:1:8WTfjZU14ee,17,213,4,get,0
+  raw: 0,yDqF:3q:1AJrrJ1nnCJKKrnGx1A,27,27,5,get,0
+  parse: {'rows_read': 1000000, 'rows_kept': 1000000, 'rows_bad_fieldcount': 0, 'rows_bad_value': 0, 'rows_unknown_op': 0, 'rows_out_of_order': 184, 'rows_dropped_by_key_sampling': 0, 'stopped_early_at_ts': None}
+  profile: {"rows": 1000000, "span_s": 58.0, "unique_keys": 255333, "ops": {"get": 892847, "gets": 28696, "set": 112, "add": 44794, "cas": 25213, "delete": 8338}, "write_fraction": 0.078457, "keys_written": 47742, "writes_per_written_key_median": 1.0, "writes_per_written_key_max": 120, "write_ttl_top": [[86400, 44407], [1209600, 19985], [0, 8338], [43200, 5241], [1800, 341]], "footprint_bytes": 82752326}
+== data/raw/twitter_samples_2020Mar/cluster022
+  raw: 0,scRBJo|NIBsLzBagNhBIPhhBhkzBHBzsXB9hNBz|c|JwLQ_kyMboJ|,54,0,1,get,0
+  raw: 0,scRBJo|kBhgI9BkAhhazNgghghXP9HIzABLXghI|c|JwLQ_kyMboJ|,54,0,2,get,0
+  raw: 0,scRBJo|6AsNaL9XAsIBIkIIIA6APLABzIIahAgz|c|JwLQ_kyMboJ|,54,0,3,get,0
+  raw: 0,scRBJo|N9hk9z9PIhXkNkaBIsghNXgskIBPzaNa|c|JwLQ_kyMboJ|,54,0,4,get,0
+  raw: 0,scRBJo|IXHAHPLzNI9zANAL9IXBBLsBAHkskLPg|c|JwLQ_kyMboJ|,54,0,5,get,0
+  parse: {'rows_read': 1000000, 'rows_kept': 1000000, 'rows_bad_fieldcount': 0, 'rows_bad_value': 0, 'rows_unknown_op': 0, 'rows_out_of_order': 259, 'rows_dropped_by_key_sampling': 0, 'stopped_early_at_ts': None}
+  profile: {"rows": 1000000, "span_s": 553.0, "unique_keys": 511774, "ops": {"get": 780861, "set": 83268, "delete": 106, "incr": 135765}, "write_fraction": 0.219139, "keys_written": 93271, "writes_per_written_key_median": 2.0, "writes_per_written_key_max": 418, "write_ttl_top": [[0, 135871], [86400, 72585], [3600, 7124], [1800, 2556], [10800, 990]], "footprint_bytes": 419117407}

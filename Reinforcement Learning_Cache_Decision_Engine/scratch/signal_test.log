@@ -1,0 +1,27 @@
+300 sweep rows in 90s
+
+## gating criteria (mode = mixture is the pre-registered one)
+mode           cap  mean d (pp)         95% CI (pp)   pos  rel red    dOHR  G1 G2 G3 G4  PASS  rho
+mixture       0.01       0.0120   [-0.0061, 0.0325]   8/10    0.221  0.0005   0  1  1  1   False  0.00
+mixture       0.05       1.5228    [0.7342, 2.5531]   9/10    0.471  0.0025   1  1  1  1   True  -1.00
+mixture       0.25       2.9641    [1.9481, 4.1790]  10/10    0.479  0.0078   1  1  1  1   True  -1.00
+interpolate   0.01       0.0120   [-0.0061, 0.0325]   8/10    0.221  0.0005   0  1  1  1   False -0.10
+interpolate   0.05       1.5228    [0.7342, 2.5531]   9/10    0.471  0.0025   1  1  1  1   True  -0.90
+interpolate   0.25       2.9641    [1.9481, 4.1790]  10/10    0.479  0.0078   1  1  1  1   True  -0.90
+
+seed-mean stale % by accuracy (mixture):
+  cap 0.01: a=0.0: 0.091  a=0.25: 0.072  a=0.5: 0.083  a=0.75: 0.138  a=1.0: 0.079
+  cap 0.05: a=0.0: 2.859  a=0.25: 1.908  a=0.5: 1.831  a=0.75: 1.577  a=1.0: 1.336
+  cap 0.25: a=0.0: 5.974  a=0.25: 4.652  a=0.5: 4.437  a=0.75: 3.523  a=1.0: 3.010
+
+## secondary diagnostic: held-out R^2 of the observations for the ideal-TTL target
+ seed   cap  n_train  n_test  R2 acc1  R2 acc0 R2 no-pred     dR2
+  100  0.01   124622   49593    0.455    0.020      0.006   0.435
+  100  0.25    37815   18671    0.522    0.079      0.022   0.443
+  101  0.01   130258   54125    0.436    0.038      0.015   0.398
+  101  0.25    38802   19797    0.519    0.118      0.126   0.401
+  102  0.01   141392   60256    0.498    0.163      0.090   0.335
+  102  0.25    41037   20961    0.507    0.117      0.090   0.390
+
+192s total
+FINISHED

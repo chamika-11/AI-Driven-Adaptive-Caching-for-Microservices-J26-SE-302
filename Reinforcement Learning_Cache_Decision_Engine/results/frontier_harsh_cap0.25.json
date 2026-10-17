@@ -1,0 +1,232 @@
+{
+ "arm": "harsh",
+ "capacity_frac": 0.25,
+ "n_policies": 75,
+ "non_dominated": [
+  {
+   "policy": "fixed:redis/5s/normal",
+   "stale_read_rate": 0.00016993951525634158,
+   "ohr": 0.27887820048367584
+  },
+  {
+   "policy": "fixed:redis/5s/high",
+   "stale_read_rate": 0.00016993951525634158,
+   "ohr": 0.27887820048367584
+  },
+  {
+   "policy": "fixed:redis/5s/low",
+   "stale_read_rate": 0.00016993951525634158,
+   "ohr": 0.27887820048367584
+  },
+  {
+   "policy": "fixed:both/5s/normal",
+   "stale_read_rate": 0.0005127220779575,
+   "ohr": 0.2790207027006429
+  },
+  {
+   "policy": "fixed:both/5s/high",
+   "stale_read_rate": 0.0005127220779575,
+   "ohr": 0.2790207027006429
+  },
+  {
+   "policy": "fixed:local/5s/high",
+   "stale_read_rate": 0.0005127220779575,
+   "ohr": 0.2790207027006429
+  },
+  {
+   "policy": "fixed:local/5s/normal",
+   "stale_read_rate": 0.0005127220779575,
+   "ohr": 0.2790207027006429
+  },
+  {
+   "policy": "fixed:local/5s/low",
+   "stale_read_rate": 0.0005127220779575,
+   "ohr": 0.2790207027006429
+  },
+  {
+   "policy": "fixed:both/5s/low",
+   "stale_read_rate": 0.0005127220779575,
+   "ohr": 0.2790207027006429
+  },
+  {
+   "policy": "fixed:redis/30s/high",
+   "stale_read_rate": 0.00198265984856855,
+   "ohr": 0.5005273458502606
+  },
+  {
+   "policy": "fixed:redis/30s/low",
+   "stale_read_rate": 0.00198265984856855,
+   "ohr": 0.5005273458502606
+  },
+  {
+   "policy": "fixed:redis/30s/normal",
+   "stale_read_rate": 0.00198265984856855,
+   "ohr": 0.5005273458502606
+  },
+  {
+   "policy": "fixed:both/30s/normal",
+   "stale_read_rate": 0.0045019968897300495,
+   "ohr": 0.501223144967425
+  },
+  {
+   "policy": "fixed:both/30s/low",
+   "stale_read_rate": 0.0045019968897300495,
+   "ohr": 0.501223144967425
+  },
+  {
+   "policy": "fixed:both/30s/high",
+   "stale_read_rate": 0.0045019968897300495,
+   "ohr": 0.501223144967425
+  },
+  {
+   "policy": "fixed:redis/120s/normal",
+   "stale_read_rate": 0.00857413578137051,
+   "ohr": 0.6793673100400826
+  },
+  {
+   "policy": "fixed:redis/120s/low",
+   "stale_read_rate": 0.00857413578137051,
+   "ohr": 0.6793673100400826
+  },
+  {
+   "policy": "fixed:redis/120s/high",
+   "stale_read_rate": 0.00857413578137051,
+   "ohr": 0.6793673100400826
+  },
+  {
+   "policy": "fixed:both/120s/low",
+   "stale_read_rate": 0.01585136268448195,
+   "ohr": 0.6800424923151229
+  },
+  {
+   "policy": "fixed:both/120s/normal",
+   "stale_read_rate": 0.01585136268448195,
+   "ohr": 0.6800424923151229
+  },
+  {
+   "policy": "fixed:both/120s/high",
+   "stale_read_rate": 0.01585136268448195,
+   "ohr": 0.6800424923151229
+  },
+  {
+   "policy": "stat_ttl:p10/redis",
+   "stale_read_rate": 0.02297991061289854,
+   "ohr": 0.7904078078545408
+  },
+  {
+   "policy": "pred_ttl:redis",
+   "stale_read_rate": 0.02428636992947647,
+   "ohr": 0.8004411638793872
+  },
+  {
+   "policy": "stat_ttl:median/redis",
+   "stale_read_rate": 0.0338513847249,
+   "ohr": 0.8150309878990954
+  },
+  {
+   "policy": "stat_ttl:mean/redis",
+   "stale_read_rate": 0.039521339807969,
+   "ohr": 0.8185995827478723
+  },
+  {
+   "policy": "stat_ttl:mean/both",
+   "stale_read_rate": 0.07107301519133835,
+   "ohr": 0.8200099289677768
+  },
+  {
+   "policy": "fixed:redis/3600s/low",
+   "stale_read_rate": 0.07730544872639485,
+   "ohr": 0.8268760027541738
+  },
+  {
+   "policy": "fixed:redis/3600s/high",
+   "stale_read_rate": 0.07730544872639485,
+   "ohr": 0.8268760027541738
+  },
+  {
+   "policy": "fixed:redis/3600s/normal",
+   "stale_read_rate": 0.07730544872639485,
+   "ohr": 0.8268760027541738
+  },
+  {
+   "policy": "evict:lru/redis/3600s",
+   "stale_read_rate": 0.07854673739488811,
+   "ohr": 0.8280554745179703
+  },
+  {
+   "policy": "evict:s3fifo/redis/3600s",
+   "stale_read_rate": 0.08245494114708742,
+   "ohr": 0.8299340754221411
+  },
+  {
+   "policy": "evict:lru/both/3600s",
+   "stale_read_rate": 0.13012124349472462,
+   "ohr": 0.8300363472367952
+  },
+  {
+   "policy": "evict:s3fifo/both/3600s",
+   "stale_read_rate": 0.16049229697142423,
+   "ohr": 0.8377381318646631
+  }
+ ],
+ "envelope": [
+  [
+   0.00016993951525634158,
+   0.27887820048367584
+  ],
+  [
+   0.00198265984856855,
+   0.5005273458502606
+  ],
+  [
+   0.00857413578137051,
+   0.6793673100400826
+  ],
+  [
+   0.02297991061289854,
+   0.7904078078545408
+  ],
+  [
+   0.02428636992947647,
+   0.8004411638793872
+  ],
+  [
+   0.0338513847249,
+   0.8150309878990954
+  ],
+  [
+   0.039521339807969,
+   0.8185995827478723
+  ],
+  [
+   0.08245494114708742,
+   0.8299340754221411
+  ],
+  [
+   0.16049229697142423,
+   0.8377381318646631
+  ]
+ ],
+ "bounds": [
+  {
+   "policy": "belady_plain",
+   "stale_read_rate": 0.4354297489831792,
+   "ohr": 0.9261901675124202
+  },
+  {
+   "policy": "belady_ttl_constrained",
+   "stale_read_rate": 0.0,
+   "ohr": 0.8947272720772533
+  },
+  {
+   "policy": "zerostale_oracle_ttl:both",
+   "stale_read_rate": 0.0005006489554034001,
+   "ohr": 0.8031917907439675
+  },
+  {
+   "policy": "zerostale_oracle_ttl:redis",
+   "stale_read_rate": 0.00017378893508318105,
+   "ohr": 0.802984507783863
+  }
+ ]
+}
