@@ -1,0 +1,60 @@
+ Container adaptive-cache-postgres-1  Running
+ Container adaptive-cache-redis-1  Running
+?   	adaptivecache/cmd/app	[no test files]
+?   	adaptivecache/cmd/data	[no test files]
+?   	adaptivecache/cmd/load	[no test files]
+?   	adaptivecache/cmd/sidecar	[no test files]
+?   	adaptivecache/cmd/smoke	[no test files]
+?   	adaptivecache/cmd/validate	[no test files]
+?   	adaptivecache/cmd/workflow	[no test files]
+=== RUN   TestFreshnessDoesNotMisclassifyLaterUpdates
+--- PASS: TestFreshnessDoesNotMisclassifyLaterUpdates (0.00s)
+=== RUN   TestSeededScenarios
+--- PASS: TestSeededScenarios (0.00s)
+PASS
+ok  	adaptivecache/internal/bench	1.080s
+=== RUN   TestCacheTiersPoliciesAndExpiry
+--- PASS: TestCacheTiersPoliciesAndExpiry (0.01s)
+=== RUN   TestPolicyCASDoesNotOverwriteConcurrentFill
+--- PASS: TestPolicyCASDoesNotOverwriteConcurrentFill (0.02s)
+=== RUN   TestConcurrentLocalFillAndPolicy
+--- PASS: TestConcurrentLocalFillAndPolicy (0.01s)
+=== RUN   TestBatchCountsSizeTimerAndHistory
+2026/10/07 22:08:16 INFO policy applied job=GET:/products/:id:1 keys=1
+2026/10/07 22:08:16 INFO policy applied job=GET:/products/:id:2 keys=1
+--- PASS: TestBatchCountsSizeTimerAndHistory (0.08s)
+=== RUN   TestQueueSaturationAndShutdown
+2026/10/07 22:08:16 WARN analysis failed job=GET:/products/:id:1 error="Post \"http://127.0.0.1:32899/analyze\": context canceled"
+--- PASS: TestQueueSaturationAndShutdown (0.21s)
+=== RUN   TestOutOfOrderAndMalformedDecisions
+2026/10/07 22:08:16 INFO policy applied job=new keys=1
+--- PASS: TestOutOfOrderAndMalformedDecisions (0.01s)
+=== RUN   TestAppSidecarFailureAndSingleflight
+--- PASS: TestAppSidecarFailureAndSingleflight (0.12s)
+=== RUN   TestMockWorkflowAndFailures
+--- PASS: TestMockWorkflowAndFailures (0.05s)
+=== RUN   TestSidecarValidationAndNull
+2026/10/07 22:08:17 WARN analysis failed job=GET:/products/:id:1 error="Post \"http://localhost:8082/analyze\": dial tcp [::1]:8082: connect: connection refused"
+--- PASS: TestSidecarValidationAndNull (0.68s)
+=== RUN   TestRedisIntegration
+--- PASS: TestRedisIntegration (0.02s)
+=== RUN   TestEndToEndRealDependencies
+    system_test.go:528: database fetch on miss
+    system_test.go:532: subsequent local cache hit
+2026/10/07 22:08:17 INFO policy applied job=GET:/products/:id:1 keys=1
+    system_test.go:537: batch created, workflow invoked, policy applied
+    system_test.go:542: later expiry causes DB miss
+2026/10/07 22:08:20 WARN analysis failed job=GET:/products/:id:2 error="upstream HTTP 503 Service Unavailable"
+2026/10/07 22:08:20 WARN analysis failed job=GET:/products/:id:3 error="upstream HTTP 503 Service Unavailable"
+    system_test.go:548: requests succeed during AI outage
+2026/10/07 22:08:20 WARN analysis failed job=GET:/products/:id:4 error="upstream HTTP 503 Service Unavailable"
+2026/10/07 22:08:20 WARN analysis failed job=GET:/products/:id:5 error="upstream HTTP 503 Service Unavailable"
+--- PASS: TestEndToEndRealDependencies (3.28s)
+=== RUN   TestAppShutdownCancelsDatabaseWork
+--- PASS: TestAppShutdownCancelsDatabaseWork (0.02s)
+=== RUN   TestInferenceDoesNotHoldRequestPath
+2026/10/07 22:08:20 WARN analysis failed job=GET:/products/:id:2 error="Post \"http://127.0.0.1:41107/analyze\": dial tcp 127.0.0.1:41107: connect: connection refused"
+2026/10/07 22:08:20 INFO policy applied job=GET:/products/:id:1 keys=1
+--- PASS: TestInferenceDoesNotHoldRequestPath (0.04s)
+PASS
+ok  	adaptivecache/internal/system	5.634s

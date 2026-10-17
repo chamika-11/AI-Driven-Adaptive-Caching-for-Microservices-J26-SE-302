@@ -1,0 +1,139 @@
+name: adaptive-cache
+services:
+  postgres:
+    image: postgres:17.6-bookworm
+    environment:
+      POSTGRES_USER: cache
+      POSTGRES_PASSWORD: cache
+      POSTGRES_DB: cache
+    ports: ["5432:5432"]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cache -d cache"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+  redis:
+    image: redis:7.4.5-bookworm
+    command: ["redis-server", "--maxmemory", "128mb", "--maxmemory-policy", "allkeys-lru", "--save", "", "--appendonly", "no"]
+    ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+  workflow:
+    build: .
+    image: adaptive-cache:local
+    entrypoint: ["/workflow"]
+    environment:
+      ADDR: ":8082"
+      AI_LATENCY: ${AI_LATENCY:-0s}
+      AI_FAILURE: ${AI_FAILURE:-}
+    ports: ["8082:8082"]
+  sidecar:
+    image: adaptive-cache:local
+    build: .
+    entrypoint: ["/sidecar"]
+    environment: &sidecar-env
+      ADDR: ":8081"
+      MODE: ${MODE:-adaptive}
+      REDIS_ADDR: redis:6379
+      AI_URL: http://workflow:8082
+      DEFAULT_TTL_SECONDS: ${DEFAULT_TTL_SECONDS:-60}
+      MIN_TTL_SECONDS: ${MIN_TTL_SECONDS:-1}
+      MAX_TTL_SECONDS: ${MAX_TTL_SECONDS:-3600}
+      MAX_FRESHNESS_SECONDS: ${MAX_FRESHNESS_SECONDS:-3600}
+      BATCH_SIZE: ${BATCH_SIZE:-100}
+      FLUSH_INTERVAL: ${FLUSH_INTERVAL:-5s}
+      CACHE_TIMEOUT: ${CACHE_TIMEOUT:-100ms}
+      AI_TIMEOUT: ${AI_TIMEOUT:-2s}
+      AI_RETRIES: ${AI_RETRIES:-2}
+      QUEUE_CAPACITY: ${QUEUE_CAPACITY:-64}
+      WORKERS: ${WORKERS:-2}
+    ports: ["8081:8081"]
+    depends_on:
+      redis: {condition: service_healthy}
+      workflow: {condition: service_started}
+  app:
+    image: adaptive-cache:local
+    build: .
+    environment: &app-env
+      MODE: ${MODE:-adaptive}
+      DATABASE_URL: postgres://cache:cache@postgres:5432/cache?sslmode=disable
+      SIDECAR_URL: http://sidecar:8081
+      CACHE_TIMEOUT: ${CACHE_TIMEOUT:-100ms}
+    ports: ["${APP_PORT:-8080}:8080"]
+    depends_on:
+      postgres: {condition: service_healthy}
+      sidecar: {condition: service_started}
+  app2:
+    profiles: ["multi"]
+    image: adaptive-cache:local
+    environment:
+      <<: *app-env
+      SIDECAR_URL: http://sidecar2:8081
+    ports: ["8090:8080"]
+    depends_on:
+      postgres: {condition: service_healthy}
+      sidecar2: {condition: service_started}
+  sidecar2:
+    profiles: ["multi"]
+    image: adaptive-cache:local
+    entrypoint: ["/sidecar"]
+    environment: *sidecar-env
+    ports: ["8091:8081"]
+    depends_on:
+      redis: {condition: service_healthy}
+      workflow: {condition: service_started}
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    volumes: ["./prometheus.yml:/etc/prometheus/prometheus.yml:ro"]
+    ports: ["9090:9090"]
+  grafana:
+    image: grafana/grafana:13.2.3
+    ports: ["127.0.0.1:${GRAFANA_PORT:-13000}:3000"]
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-local-demo-admin}
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/request-path.json
+    volumes:
+      - grafanadata:/var/lib/grafana
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      prometheus: {condition: service_started}
+  tools:
+    profiles: ["tools"]
+    image: adaptive-cache:local
+    entrypoint: ["/data"]
+    environment:
+      DATABASE_URL: postgres://cache:cache@postgres:5432/cache?sslmode=disable
+    volumes: ["./results:/results"]
+    depends_on:
+      postgres: {condition: service_healthy}
+  verify:
+    profiles: ["test"]
+    image: golang:1.27.1-bookworm
+    working_dir: /src
+    volumes:
+      - .:/src
+      - testmodules:/go/pkg/mod
+      - testbuild:/root/.cache/go-build
+    environment:
+      TEST_REDIS_ADDR: redis:6379
+      TEST_DATABASE_URL: postgres://cache:cache@postgres:5432/cache?sslmode=disable
+    command: ["sh", "-c", "go vet ./... && go test -race -count=1 -v ./..."]
+    depends_on:
+      redis: {condition: service_healthy}
+      postgres: {condition: service_healthy}
+volumes:
+  grafanadata:
+  pgdata:
+  testmodules:
+  testbuild:

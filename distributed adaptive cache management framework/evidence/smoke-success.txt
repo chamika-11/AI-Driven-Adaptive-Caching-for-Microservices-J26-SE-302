@@ -1,0 +1,15 @@
+ Container adaptive-cache-postgres-1  Running
+PASS: database fetch on miss
+PASS: subsequent cache hit
+PASS: batch-driving request
+PASS: batch-driving request
+PASS: batch-driving request
+PASS: batch-driving request
+PASS: batch-driving request
+PASS: batch-driving request
+PASS: batch-driving request
+PASS: batch-driving request
+PASS: batch created
+PASS: TTL decision applied
+PASS: workflow invoked
+PASS: expiry causes later miss

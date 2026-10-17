@@ -1,0 +1,7 @@
+.tools
+.cache
+.git
+results
+bin
+Pseudocode
+*.log

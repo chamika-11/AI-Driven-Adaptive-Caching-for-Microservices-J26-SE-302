@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "jobId": "example-1",
+  "sequence": 1,
+  "endpoint": "GET:/products/:id",
+  "history": [],
+  "current": {
+    "start": "2026-10-08T00:00:00Z",
+    "end": "2026-10-08T00:00:05Z",
+    "totalRequests": 10,
+    "hits": 9,
+    "misses": 1,
+    "requestsPerSecond": 2,
+    "keys": {
+      "product:1": {
+        "accesses": 10,
+        "hits": 9,
+        "misses": 1,
+        "lookupSeconds": 0.012,
+        "localHits": 9,
+        "redisHits": 0
+      }
+    }
+  },
+  "currentPolicies": {
+    "product:1": {
+      "ttlSeconds": 60,
+      "updatedAt": "0001-01-01T00:00:00Z",
+      "expiresAt": "0001-01-01T00:00:00Z"
+    }
+  },
+  "observations": {
+    "product:1": {
+      "sourceVersion": 1,
+      "fetchedAt": "2026-10-08T00:00:00Z",
+      "dbFetchSeconds": 0.004,
+      "payloadBytes": 1024,
+      "outcome": "ok",
+      "observedUpdateIntervalSeconds": null
+    }
+  },
+  "resources": {
+    "localEntries": 1,
+    "localCapacity": 1000,
+    "queueDepth": 0,
+    "heapBytes": 3000000,
+    "redisMemoryBytes": null,
+    "cpuUtilization": null
+  },
+  "bounds": {
+    "minTTLSeconds": 1,
+    "maxTTLSeconds": 3600,
+    "defaultTTLSeconds": 60,
+    "maxFreshnessSeconds": 3600
+  }
+}
