@@ -1,0 +1,10 @@
+ Container adaptive-cache-postgres-1  Running
+PASS: request succeeds during AI outage
+PASS: request succeeds during AI outage
+PASS: request succeeds during AI outage
+PASS: request succeeds during AI outage
+PASS: request succeeds during AI outage
+PASS: request succeeds during AI outage
+PASS: request succeeds during AI outage
+PASS: request succeeds during AI outage
+PASS: AI failure observed while requests succeed

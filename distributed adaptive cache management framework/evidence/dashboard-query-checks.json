@@ -1,0 +1,134 @@
+[
+  {
+    "Dashboard": "cache-background",
+    "Panel": "Analysis batches / second",
+    "Status": "success",
+    "Series": 1
+  },
+  {
+    "Dashboard": "cache-background",
+    "Panel": "Workflow calls / second",
+    "Status": "success",
+    "Series": 1
+  },
+  {
+    "Dashboard": "cache-background",
+    "Panel": "Applied key policies / second",
+    "Status": "success",
+    "Series": 1
+  },
+  {
+    "Dashboard": "cache-background",
+    "Panel": "Applied key policies — process total",
+    "Status": "success",
+    "Series": 1
+  },
+  {
+    "Dashboard": "cache-background",
+    "Panel": "AI job duration — p95 (ms)",
+    "Status": "success",
+    "Series": 1
+  },
+  {
+    "Dashboard": "cache-background",
+    "Panel": "Failed AI jobs / second",
+    "Status": "success",
+    "Series": 1
+  },
+  {
+    "Dashboard": "cache-background",
+    "Panel": "Queue depth",
+    "Status": "success",
+    "Series": 1
+  },
+  {
+    "Dashboard": "cache-background",
+    "Panel": "Oldest queued job age (seconds)",
+    "Status": "success",
+    "Series": 1
+  },
+  {
+    "Dashboard": "cache-background",
+    "Panel": "Dropped batches / second",
+    "Status": "success",
+    "Series": 1
+  },
+  {
+    "Dashboard": "cache-background",
+    "Panel": "Rejected or failed policies / second",
+    "Status": "success",
+    "Series": 0
+  },
+  {
+    "Dashboard": "cache-background",
+    "Panel": "Oldest active policy age (seconds)",
+    "Status": "success",
+    "Series": 1
+  },
+  {
+    "Dashboard": "cache-background",
+    "Panel": "Go goroutines by service",
+    "Status": "success",
+    "Series": 3
+  },
+  {
+    "Dashboard": "cache-request-path",
+    "Panel": "Service availability: 1 = UP, 0 = DOWN",
+    "Status": "success",
+    "Series": 3
+  },
+  {
+    "Dashboard": "cache-request-path",
+    "Panel": "Application requests / second",
+    "Status": "success",
+    "Series": 1
+  },
+  {
+    "Dashboard": "cache-request-path",
+    "Panel": "Application latency — p95 (ms)",
+    "Status": "success",
+    "Series": 1
+  },
+  {
+    "Dashboard": "cache-request-path",
+    "Panel": "Database reads / second",
+    "Status": "success",
+    "Series": 1
+  },
+  {
+    "Dashboard": "cache-request-path",
+    "Panel": "Cache lookups / second by tier",
+    "Status": "success",
+    "Series": 2
+  },
+  {
+    "Dashboard": "cache-request-path",
+    "Panel": "Cache hit rate (%)",
+    "Status": "success",
+    "Series": 1
+  },
+  {
+    "Dashboard": "cache-request-path",
+    "Panel": "Application errors / second",
+    "Status": "success",
+    "Series": 1
+  },
+  {
+    "Dashboard": "cache-request-path",
+    "Panel": "Cache insertion errors / second",
+    "Status": "success",
+    "Series": 1
+  },
+  {
+    "Dashboard": "cache-request-path",
+    "Panel": "Local cache entries",
+    "Status": "success",
+    "Series": 1
+  },
+  {
+    "Dashboard": "cache-request-path",
+    "Panel": "Go heap usage by service",
+    "Status": "success",
+    "Series": 3
+  }
+]

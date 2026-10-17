@@ -1,0 +1,6 @@
+global:
+  scrape_interval: 5s
+scrape_configs:
+  - job_name: prototype
+    static_configs:
+      - targets: ["app:8080", "sidecar:8081", "workflow:8082"]

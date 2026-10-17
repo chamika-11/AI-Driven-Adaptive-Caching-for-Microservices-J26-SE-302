@@ -1,0 +1,848 @@
+{
+  "uid": "cache-background",
+  "title": "2. Background AI — batches and TTL policies",
+  "tags": [
+    "adaptive-cache",
+    "demo"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "5s",
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "editable": false,
+  "graphTooltip": 1,
+  "annotations": {
+    "list": []
+  },
+  "templating": {
+    "list": []
+  },
+  "links": [
+    {
+      "title": "1. Request path",
+      "url": "/d/cache-request-path",
+      "type": "link"
+    },
+    {
+      "title": "2. Background AI",
+      "url": "/d/cache-background",
+      "type": "link"
+    },
+    {
+      "title": "Prometheus targets",
+      "url": "http://localhost:9090/targets",
+      "type": "link",
+      "targetBlank": true
+    }
+  ],
+  "panels": [
+    {
+      "id": 1,
+      "title": "Analysis batches / second",
+      "description": "A batch is created after 100 accesses or the 5-second timer by default.",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "cache-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "(sum(rate(cache_events_total{job=\"prototype\",instance=\"sidecar:8081\",kind=\"batch_created\"}[1m]))) or (0 * max(up{job=\"prototype\",instance=\"sidecar:8081\"} == 1))",
+          "legendFormat": "Analysis batches / second",
+          "range": true,
+          "editorMode": "code",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "cache-prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "decimals": 2,
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 2,
+      "title": "Workflow calls / second",
+      "description": "Calls received by the workflow; retries can produce more than one call per job.",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "cache-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "(sum(rate(cache_events_total{job=\"prototype\",instance=\"workflow:8082\",kind=\"workflow_call\"}[1m]))) or (0 * max(up{job=\"prototype\",instance=\"workflow:8082\"} == 1))",
+          "legendFormat": "Workflow calls / second",
+          "range": true,
+          "editorMode": "code",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "cache-prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "decimals": 2,
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 3,
+      "title": "Applied key policies / second",
+      "description": "Counts per-key policy applications, including applications that select the same TTL. This is NOT a per-key TTL graph.",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "cache-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "(sum(rate(cache_events_total{job=\"prototype\",instance=\"sidecar:8081\",kind=\"policy_update\"}[1m]))) or (0 * max(up{job=\"prototype\",instance=\"sidecar:8081\"} == 1))",
+          "legendFormat": "Applied key policies / second",
+          "range": true,
+          "editorMode": "code",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "cache-prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "decimals": 2,
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 4,
+      "title": "Applied key policies — process total",
+      "description": "Resets when the sidecar process restarts.",
+      "type": "stat",
+      "gridPos": {
+        "x": 12,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "cache-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "(sum(cache_events_total{job=\"prototype\",instance=\"sidecar:8081\",kind=\"policy_update\"})) or (0 * max(up{job=\"prototype\",instance=\"sidecar:8081\"} == 1))",
+          "legendFormat": "Applied key policies — process total",
+          "range": true,
+          "editorMode": "code",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "cache-prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 2,
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "area"
+      }
+    },
+    {
+      "id": 5,
+      "title": "AI job duration — p95 (ms)",
+      "description": "Worker duration includes workflow calls, retry/backoff and policy application. It is not model inference time alone.",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "cache-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "1000 * histogram_quantile(0.95,sum by(le)(rate(ai_processing_seconds_bucket{job=\"prototype\",instance=\"sidecar:8081\"}[1m])))",
+          "legendFormat": "AI job duration — p95 (ms)",
+          "range": true,
+          "editorMode": "code",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "cache-prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "decimals": 2,
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 6,
+      "title": "Failed AI jobs / second",
+      "description": "Includes unavailable workflow, timeouts, invalid responses and application/order failures. The product request path continues independently.",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "cache-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "(sum(rate(cache_events_total{job=\"prototype\",instance=\"sidecar:8081\",kind=\"ai_failure\"}[1m]))) or (0 * max(up{job=\"prototype\",instance=\"sidecar:8081\"} == 1))",
+          "legendFormat": "Failed AI jobs / second",
+          "range": true,
+          "editorMode": "code",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "cache-prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "decimals": 2,
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 7,
+      "title": "Queue depth",
+      "description": "Waiting jobs, excluding jobs already being processed. Zero is normal when workers keep up.",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 24,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "cache-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "cache_state{job=\"prototype\",instance=\"sidecar:8081\",kind=\"queue_depth\"}",
+          "legendFormat": "Queue depth",
+          "range": true,
+          "editorMode": "code",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "cache-prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 2,
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 8,
+      "title": "Oldest queued job age (seconds)",
+      "description": "Time waiting in the queue. Zero when it is empty.",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 24,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "cache-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "cache_state{job=\"prototype\",instance=\"sidecar:8081\",kind=\"oldest_queued_job_age_seconds\"}",
+          "legendFormat": "Oldest queued job age (seconds)",
+          "range": true,
+          "editorMode": "code",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "cache-prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": 2,
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 9,
+      "title": "Dropped batches / second",
+      "description": "When the bounded queue is full, incoming batches are dropped to keep request recording nonblocking.",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 32,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "cache-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "(sum(rate(cache_events_total{job=\"prototype\",instance=\"sidecar:8081\",kind=\"batch_dropped\"}[1m]))) or (0 * max(up{job=\"prototype\",instance=\"sidecar:8081\"} == 1))",
+          "legendFormat": "Dropped batches / second",
+          "range": true,
+          "editorMode": "code",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "cache-prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "decimals": 2,
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 10,
+      "title": "Rejected or failed policies / second",
+      "description": "These counters may not exist before an event occurs; No data can be expected while there are no such events.",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 32,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "cache-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by(kind)(rate(cache_events_total{job=\"prototype\",instance=\"sidecar:8081\",kind=~\"policy_rejected|policy_out_of_order|policy_application_failure\"}[1m]))",
+          "legendFormat": "{{kind}}",
+          "range": true,
+          "editorMode": "code",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "cache-prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "decimals": 2,
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 11,
+      "title": "Oldest active policy age (seconds)",
+      "description": "Age since the oldest retained policy was applied, not the product's data age or remaining TTL.",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 40,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "cache-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "cache_state{job=\"prototype\",instance=\"sidecar:8081\",kind=\"oldest_policy_age_seconds\"}",
+          "legendFormat": "Oldest active policy age (seconds)",
+          "range": true,
+          "editorMode": "code",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "cache-prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": 2,
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 12,
+      "title": "Go goroutines by service",
+      "description": "Background work is bounded; HTTP handlers and runtime activity also contribute.",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 40,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "cache-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "go_goroutines{job=\"prototype\"}",
+          "legendFormat": "{{instance}}",
+          "range": true,
+          "editorMode": "code",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "cache-prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 2,
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    }
+  ]
+}

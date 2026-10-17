@@ -1,0 +1,11 @@
+services:
+  sidecar:
+    environment:
+      DEFAULT_TTL_SECONDS: "2"
+      MAX_TTL_SECONDS: "3"
+      MAX_FRESHNESS_SECONDS: "3"
+      MIN_TTL_SECONDS: "1"
+      BATCH_SIZE: "4"
+      FLUSH_INTERVAL: "250ms"
+      AI_TIMEOUT: "200ms"
+      AI_RETRIES: "0"
