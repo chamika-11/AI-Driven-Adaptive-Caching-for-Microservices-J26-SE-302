@@ -11,6 +11,7 @@ import { AppLayout } from "./components/layout/AppLayout.js";
 import { type NavTab } from "./components/layout/Sidebar.js";
 import { DashboardPage } from "./pages/DashboardPage.js";
 import { PlaceholderView } from "./components/dashboard/PlaceholderView.js";
+import { ApiDocIngestionView } from "./components/dashboard/ApiDocIngestionView.js";
 import { getSystemReadiness } from "./services/events.service.js";
 
 export function App() {
@@ -111,6 +112,8 @@ export function App() {
     >
       {activeTab === "dashboard" || activeTab === "events" ? (
         <DashboardPage refreshTrigger={refreshTrigger} />
+      ) : activeTab === "api-docs" ? (
+        <ApiDocIngestionView onBackToDashboard={() => setActiveTab("dashboard")} />
       ) : (
         <PlaceholderView
           tab={activeTab}

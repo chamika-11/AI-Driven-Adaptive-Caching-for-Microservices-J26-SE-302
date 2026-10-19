@@ -1,0 +1,73 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Inventory Management API",
+    "version": "1.0.0",
+    "description": "Legacy Swagger 2.0 catalog service"
+  },
+  "host": "inventory.internal.svc:8080",
+  "basePath": "/v2",
+  "schemes": ["http"],
+  "consumes": ["application/json"],
+  "produces": ["application/json"],
+  "paths": {
+    "/products": {
+      "get": {
+        "operationId": "getProducts",
+        "summary": "Retrieve product list",
+        "tags": ["Products"],
+        "parameters": [
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Products returned"
+          }
+        }
+      }
+    },
+    "/products/{sku}": {
+      "parameters": [
+        {
+          "name": "sku",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }
+      ],
+      "put": {
+        "operationId": "updateProductStock",
+        "summary": "Update stock level",
+        "tags": ["Products"],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/StockUpdate"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Stock updated"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "StockUpdate": {
+      "type": "object",
+      "properties": {
+        "quantity": { "type": "integer" }
+      }
+    }
+  }
+}

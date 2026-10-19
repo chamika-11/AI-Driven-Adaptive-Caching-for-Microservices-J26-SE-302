@@ -1,0 +1,42 @@
+openapi: 3.1.0
+info:
+  title: Payment Gateway Service
+  version: 2.1.0
+  description: Microservice processing transactions and refunds
+servers:
+  - url: https://payments.example.com/api
+paths:
+  /payments/charge:
+    post:
+      operationId: processCharge
+      summary: Charge a customer account
+      tags:
+        - Payments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: number
+                currency:
+                  type: string
+      responses:
+        "200":
+          description: Charge successful
+        "402":
+          description: Payment required / declined
+  /payments/{paymentId}/refund:
+    post:
+      summary: Issue refund
+      parameters:
+        - name: paymentId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Refund processed

@@ -20,6 +20,8 @@
     "test:unit": "npm run test:unit --workspace=apps/api",
     "test:integration": "npm run test:integration --workspace=apps/api",
     "test:shared": "npm run test --workspace=packages/shared",
+    "test:ingestion": "cd services/ingestion && \"%USERPROFILE%\\.c4_venv\\Scripts\\pytest.exe\" -v",
+    "dev:ingestion": "cd services/ingestion && \"%USERPROFILE%\\.c4_venv\\Scripts\\python.exe\" -m uvicorn src.main:app --host 0.0.0.0 --port 8001 --reload",
     "lint": "npm run lint --workspaces --if-present",
     "clean": "npm run clean --workspaces --if-present"
   },

@@ -1,0 +1,12 @@
+openapi: 3.0.0
+info:
+  title: Exploitative Spec
+  version: 1.0.0
+paths:
+  /exploit:
+    get:
+      summary: Attempt code execution
+      responses:
+        "200":
+          description: ok
+exploit_payload: !!python/object/apply:builtins.eval ["1 + 1"]

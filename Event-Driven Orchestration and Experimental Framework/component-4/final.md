@@ -697,3 +697,57 @@ Part 3.5 established rigorous, multi-layered end-to-end verification and integra
 - `apps/web/tests/e2e-workflow.test.tsx`: Frontend dashboard user journey and interaction test suite.
 - `docs/part-3.5-verification-report.md`: Formal verification report with complete audit breakdown.
 
+---
+
+# Section 9: Part 4.1 Implementation — API Documentation Ingestion
+
+## 9.1 Architectural Overview & Scope
+
+Part 4.1 establishes the foundational ingestion pipeline for Component 4 (*Event Intelligence & Context-Aware Feature Engineering*). It enables microservice developers to ingest OpenAPI 3.x and Swagger 2.0 specifications (JSON & YAML), structural validation, security scanning (SSRF resistance and safe YAML parsing), and deterministic endpoint metadata normalization.
+
+The Python FastAPI service runs independently in `services/ingestion` and is integrated into the Express API gateway (`/api/docs/*`) and the React frontend dashboard (`api-docs` tab).
+
+```
+[React Web App]  (port 5173 /api/docs/ingest)
+       │
+       ▼ (Proxy / Gateway)
+[Express API]    (port 4004 /api/docs/*)
+       │
+       ▼ (Direct Microservice Call)
+[FastAPI Service] (port 8001 /api/v1/ingest)
+       │
+       ├── DocumentParser (Safe YAML, Content Type Detection, OpenAPI 3.x & Swagger 2.0)
+       ├── SafeSpecScanner (SSRF Protection, External Reference Rejection)
+       ├── EndpointNormalizer (Deterministic Method/Path/Param/Payload/Response Extraction)
+       └── BaseDocumentRepository (In-Memory Hermetic & MongoDB Atlas Adapters)
+```
+
+## 9.2 File Structure & Definitions
+
+### `services/ingestion/`
+- [`services/ingestion/requirements.txt`](file:///c:/Users/dperera/Desktop/research%20proposal%20report/Research_Project/AI-Driven-Adaptive-Caching-for-Microservices-J26-SE-302/Event-Driven%20Orchestration%20and%20Experimental%20Framework/component-4/services/ingestion/requirements.txt): Pinned dependencies (`fastapi`, `uvicorn`, `pydantic`, `pyyaml`, `python-multipart`, `httpx`, `pytest`, `pymongo`).
+- [`services/ingestion/README.md`](file:///c:/Users/dperera/Desktop/research%20proposal%20report/Research_Project/AI-Driven-Adaptive-Caching-for-Microservices-J26-SE-302/Event-Driven%20Orchestration%20and%20Experimental%20Framework/component-4/services/ingestion/README.md): Setup, startup, test execution, and security restrictions.
+- [`services/ingestion/.env.example`](file:///c:/Users/dperera/Desktop/research%20proposal%20report/Research_Project/AI-Driven-Adaptive-Caching-for-Microservices-J26-SE-302/Event-Driven%20Orchestration%20and%20Experimental%20Framework/component-4/services/ingestion/.env.example): Environment variables template.
+- [`services/ingestion/pytest.ini`](file:///c:/Users/dperera/Desktop/research%20proposal%20report/Research_Project/AI-Driven-Adaptive-Caching-for-Microservices-J26-SE-302/Event-Driven%20Orchestration%20and%20Experimental%20Framework/component-4/services/ingestion/pytest.ini): Pytest path and runner configuration.
+- [`services/ingestion/src/config.py`](file:///c:/Users/dperera/Desktop/research%20proposal%20report/Research_Project/AI-Driven-Adaptive-Caching-for-Microservices-J26-SE-302/Event-Driven%20Orchestration%20and%20Experimental%20Framework/component-4/services/ingestion/src/config.py): Pydantic-settings configuration for ports, max file size, and logging.
+- [`services/ingestion/src/main.py`](file:///c:/Users/dperera/Desktop/research%20proposal%20report/Research_Project/AI-Driven-Adaptive-Caching-for-Microservices-J26-SE-302/Event-Driven%20Orchestration%20and%20Experimental%20Framework/component-4/services/ingestion/src/main.py): FastAPI app, CORS, health check (`GET /health`), centralized exception handlers.
+- [`services/ingestion/src/models/schemas.py`](file:///c:/Users/dperera/Desktop/research%20proposal%20report/Research_Project/AI-Driven-Adaptive-Caching-for-Microservices-J26-SE-302/Event-Driven%20Orchestration%20and%20Experimental%20Framework/component-4/services/ingestion/src/models/schemas.py): Pydantic models (`DocumentMetadata`, `NormalizedEndpoint`, `ParameterMetadata`, `RequestBodyMetadata`, `ResponseMetadata`, `IngestionResponse`, `HealthResponse`).
+- [`services/ingestion/src/core/security.py`](file:///c:/Users/dperera/Desktop/research%20proposal%20report/Research_Project/AI-Driven-Adaptive-Caching-for-Microservices-J26-SE-302/Event-Driven%20Orchestration%20and%20Experimental%20Framework/component-4/services/ingestion/src/core/security.py): SSRF protection, remote `$ref` rejection, external file reference scanning.
+- [`services/ingestion/src/core/parser.py`](file:///c:/Users/dperera/Desktop/research%20proposal%20report/Research_Project/AI-Driven-Adaptive-Caching-for-Microservices-J26-SE-302/Event-Driven%20Orchestration%20and%20Experimental%20Framework/component-4/services/ingestion/src/core/parser.py): Safe YAML (`yaml.safe_load`) and JSON parser, OpenAPI 3.x and Swagger 2.0 validation, SHA-256 provenance hash.
+- [`services/ingestion/src/core/normalizer.py`](file:///c:/Users/dperera/Desktop/research%20proposal%20report/Research_Project/AI-Driven-Adaptive-Caching-for-Microservices-J26-SE-302/Event-Driven%20Orchestration%20and%20Experimental%20Framework/component-4/services/ingestion/src/core/normalizer.py): Deterministic endpoint normalization, parameter resolution, request/response schema tracking, duplicate prevention.
+- [`services/ingestion/src/persistence/repository.py`](file:///c:/Users/dperera/Desktop/research%20proposal%20report/Research_Project/AI-Driven-Adaptive-Caching-for-Microservices-J26-SE-302/Event-Driven%20Orchestration%20and%20Experimental%20Framework/component-4/services/ingestion/src/persistence/repository.py): Repository pattern with `InMemoryDocumentRepository` and `MongoDocumentRepository`.
+- [`services/ingestion/src/api/routes.py`](file:///c:/Users/dperera/Desktop/research%20proposal%20report/Research_Project/AI-Driven-Adaptive-Caching-for-Microservices-J26-SE-302/Event-Driven%20Orchestration%20and%20Experimental%20Framework/component-4/services/ingestion/src/api/routes.py): `POST /api/v1/ingest`, `GET /api/v1/documents`, `GET /api/v1/documents/{id}/endpoints`, `GET /api/v1/endpoints`.
+- [`services/ingestion/tests/`](file:///c:/Users/dperera/Desktop/research%20proposal%20report/Research_Project/AI-Driven-Adaptive-Caching-for-Microservices-J26-SE-302/Event-Driven%20Orchestration%20and%20Experimental%20Framework/component-4/services/ingestion/tests/): 29 automated pytest suites with synthetic OpenAPI 3 and Swagger 2 fixtures.
+
+### `apps/api/` & `apps/web/` Additions
+- [`apps/api/src/routes/docs.routes.ts`](file:///c:/Users/dperera/Desktop/research%20proposal%20report/Research_Project/AI-Driven-Adaptive-Caching-for-Microservices-J26-SE-302/Event-Driven%20Orchestration%20and%20Experimental%20Framework/component-4/apps/api/src/routes/docs.routes.ts): Gateway proxy route forwarding `/api/docs/*` to Python service with graceful 503 fallback.
+- [`apps/web/src/services/docs.service.ts`](file:///c:/Users/dperera/Desktop/research%20proposal%20report/Research_Project/AI-Driven-Adaptive-Caching-for-Microservices-J26-SE-302/Event-Driven%20Orchestration%20and%20Experimental%20Framework/component-4/apps/web/src/services/docs.service.ts): Frontend API client for documentation ingestion.
+- [`apps/web/src/components/dashboard/ApiDocIngestionView.tsx`](file:///c:/Users/dperera/Desktop/research%20proposal%20report/Research_Project/AI-Driven-Adaptive-Caching-for-Microservices-J26-SE-302/Event-Driven%20Orchestration%20and%20Experimental%20Framework/component-4/apps/web/src/components/dashboard/ApiDocIngestionView.tsx): Upload interface with dropzone, loading, error, and endpoint table states.
+- [`apps/web/tests/api-doc-ingestion.test.tsx`](file:///c:/Users/dperera/Desktop/research%20proposal%20report/Research_Project/AI-Driven-Adaptive-Caching-for-Microservices-J26-SE-302/Event-Driven%20Orchestration%20and%20Experimental%20Framework/component-4/apps/web/tests/api-doc-ingestion.test.tsx): Frontend unit tests for upload and error interactions.
+
+## 9.3 Verification Summary
+- **Python Pytest Suite:** 29 passed, 0 failed (100% pass rate in 0.50s).
+- **Web Test Suite:** 52 passed across 5 test files.
+- **API Unit Suite:** 129 passed across 8 test files.
+- **Monorepo Build:** Code 0 across all workspaces.
+
