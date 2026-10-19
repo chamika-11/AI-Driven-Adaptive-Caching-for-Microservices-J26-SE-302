@@ -1,0 +1,64 @@
+version: "3.9"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# docker-compose.yml — Component 1: Adaptive TTL Engine
+#
+# Quick start:
+#   docker compose up --build
+#
+# Rebuild after code changes:
+#   docker compose up --build --force-recreate
+#
+# Run nightly retraining manually:
+#   docker compose run --rm retrain
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── API Service ─────────────────────────────────────────────────────────────
+  ttl-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ttl_engine_api
+    restart: unless-stopped
+
+    ports:
+      - "${PORT:-5001}:5001"
+
+    # Override environment variables from the host .env file
+    env_file:
+      - .env
+
+    # Mount models and data as volumes so they can be updated without
+    # rebuilding the image. The retraining job writes new files here.
+    volumes:
+      - ./models:/app/models
+      - ./data:/app/data
+
+    # Wait until the container is healthy before routing traffic
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:5001/health')"]
+      interval: 30s
+      timeout:  5s
+      retries:  3
+      start_period: 90s   # TF model loading can take up to ~60s on first boot
+
+  # ── Nightly Retraining Job ──────────────────────────────────────────────────
+  # Run manually:   docker compose run --rm retrain
+  # In production:  schedule via host cron or an orchestrator like Airflow
+  retrain:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ttl_engine_retrain
+    profiles:
+      - retrain           # Only start with: docker compose --profile retrain up
+    env_file:
+      - .env
+    volumes:
+      - ./models:/app/models
+      - ./data:/app/data
+    command: ["python", "src/retrain.py"]
+    restart: "no"         # Run once and exit — let the scheduler handle cadence
