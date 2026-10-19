@@ -15,10 +15,16 @@
   "scripts": {
     "build": "tsc --build",
     "clean": "rimraf dist *.tsbuildinfo",
-    "dev": "tsc --build --watch"
+    "dev": "tsc --build --watch",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "zod": "~3.23.8"
   },
   "devDependencies": {
     "typescript": "~5.6.3",
-    "rimraf": "~6.0.1"
+    "rimraf": "~6.0.1",
+    "vitest": "~2.1.3"
   }
 }
