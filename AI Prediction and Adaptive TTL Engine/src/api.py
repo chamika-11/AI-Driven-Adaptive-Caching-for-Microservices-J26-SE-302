@@ -12,7 +12,6 @@ import joblib
 import numpy as np
 import pandas as pd
 from flask import Flask, jsonify, request
-from statsmodels.tsa.arima.model import ARIMA  # noqa: F401  (needed for joblib unpickling)
 from tensorflow.keras.models import load_model
 
 # ── Logging setup ─────────────────────────────────────────────────────────────
@@ -37,7 +36,7 @@ app = Flask(__name__)
 logger.info("=== API Startup: Loading models and data ===")
 _startup_start = time.perf_counter()
 
-# 1. Model metadata (JSON)
+# ── Global model metadata ────────────────────────────────────────────────────
 logger.info("Loading model metadata from: %s", cfg.METADATA_PATH)
 try:
     with open(cfg.METADATA_PATH) as f:
@@ -45,47 +44,35 @@ try:
     _metadata: list[dict] = _raw_meta["models"]
     _model_version: str   = _raw_meta.get("version", "unknown")
     _generated_at: str    = _raw_meta.get("generated_at", "unknown")
+    _mode: str            = _raw_meta.get("mode", "global_shared")
     logger.info(
-        "Metadata loaded: version=%s, %d keys, generated_at=%s",
-        _model_version, len(_metadata), _generated_at,
+        "Metadata loaded: version=%s, mode=%s, generated_at=%s",
+        _model_version, _mode, _generated_at,
     )
 except Exception as exc:
     logger.error("FATAL: Could not load model metadata: %s", exc)
-    _metadata, _model_version, _generated_at = [], "error", "unknown"
+    _metadata, _model_version, _generated_at, _mode = [], "error", "unknown", "global_shared"
 
-# 2. Per-key models and scalers
-logger.info("Loading per-key LSTM models and scalers...")
-_models:  dict[str, object] = {}
-_scalers: dict[str, object] = {}
-_key_model_map: dict[str, str] = {}
+# ── Load single shared global model + scaler + label encoder ─────────────────
+logger.info("Loading global LSTM model and shared scaler...")
+_global_model  = None
+_global_scaler = None
+_global_le     = None       # LabelEncoder: cache_key -> int index
+_known_keys: set[str] = set()
 
-for entry in _metadata:
-    key       = entry["key"]
-    safe_key  = entry.get("safe_key", key.replace(":", "_").replace("/", "_"))
-    selected  = entry["selected_model"]
-    _key_model_map[key] = selected
+try:
+    _global_model  = load_model(str(cfg.MODEL_DIR / "lstm_global.keras"))
+    _global_scaler = joblib.load(str(cfg.MODEL_DIR / "scaler_global.pkl"))
+    _global_le     = joblib.load(str(cfg.MODEL_DIR / "label_encoder_global.pkl"))
+    _known_keys    = set(_global_le.classes_)
+    logger.info(
+        "Global model loaded: %d parameters | %d known keys",
+        _global_model.count_params(), len(_known_keys),
+    )
+except Exception as exc:
+    logger.error("Could not load global model: %s", exc)
 
-    if selected == "LSTM":
-        model_path  = cfg.MODEL_DIR / f"lstm_{safe_key}.keras"
-        scaler_path = cfg.MODEL_DIR / f"scaler_{safe_key}.pkl"
-        try:
-            _models[key]  = load_model(str(model_path))
-            _scalers[key] = joblib.load(str(scaler_path))
-            logger.info("  Loaded LSTM model  for key='%s'", key)
-        except Exception as exc:
-            logger.warning("  Could not load LSTM for key='%s': %s", key, exc)
-    else:  # ARIMA
-        arima_path = cfg.MODEL_DIR / f"arima_{safe_key}.pkl"
-        try:
-            _models[key] = joblib.load(str(arima_path))
-            logger.info("  Loaded ARIMA model for key='%s'", key)
-        except Exception as exc:
-            logger.warning(
-                "  Could not load ARIMA pkl for key='%s': %s — will use fallback", key, exc
-            )
-            _models[key] = None  # None signals fallback in _predict_popularity
-
-# 3. Historical feature data (for LSTM input construction)
+# ── Historical feature data (for LSTM input construction) ─────────────────────
 logger.info("Loading processed features from: %s", cfg.PROCESSED_FEATURES_PATH)
 try:
     _feature_df = pd.read_csv(cfg.PROCESSED_FEATURES_PATH, parse_dates=["bucket"])
@@ -94,7 +81,7 @@ except Exception as exc:
     logger.error("Could not load feature data: %s", exc)
     _feature_df = pd.DataFrame()
 
-# 4. DB update logs — pre-loaded to avoid per-request disk reads
+# ── DB update logs — pre-loaded to avoid per-request disk reads ───────────────
 logger.info("Loading DB update logs from: %s", cfg.DB_UPDATES_PATH)
 try:
     _db_updates_df = pd.read_csv(cfg.DB_UPDATES_PATH, parse_dates=["timestamp"])
@@ -103,7 +90,7 @@ except Exception as exc:
     logger.error("Could not load DB update log: %s", exc)
     _db_updates_df = pd.DataFrame(columns=["timestamp", "cache_key"])
 
-# 5. Engine instances
+# ── Engine instances ──────────────────────────────────────────────────────────
 _volatility_engine = VolatilityEngine(alpha=cfg.EWMA_ALPHA)
 _hotkey_detector   = HotKeyDetector(
     threshold=cfg.HOTKEY_THRESHOLD,
@@ -121,19 +108,21 @@ _reload_lock: threading.Lock = threading.Lock()
 # Structure: {cache_key: {"ttl": int, "expires_at": float (epoch)}}
 _ttl_overrides: dict[str, dict] = {}
 
-# Feature columns must match training order in train_models.py
-_FEATURE_COLS = ["request_count", "hour_sin", "hour_cos", "dow_sin", "dow_cos"]
+# Feature columns — must match train_models.py (global mode includes key_label)
+_FEATURE_COLS = ["request_count", "hour_sin", "hour_cos", "dow_sin", "dow_cos", "key_label"]
 _N_FEATURES   = len(_FEATURE_COLS)
 _SEQ_LEN      = cfg.SEQUENCE_LENGTH
-_MAX_COUNT    = 150  # Used to normalise raw count into a popularity score
+_MAX_COUNT    = 150  # Normalise raw count into a popularity score [0, 1]
 
 def _get_features_for_key(key: str) -> np.ndarray | None:
     """
-    Return the last `_SEQ_LEN` rows of feature data for `key`.
+    Return the last `_SEQ_LEN` rows of feature data for `key`, with the
+    key_label column appended (required by the global shared model).
     Returns None if insufficient history exists.
     """
-    if _feature_df.empty:
+    if _feature_df.empty or _global_le is None:
         return None
+
     key_data = _feature_df[_feature_df["cache_key"] == key].sort_values("bucket")
     if len(key_data) < _SEQ_LEN:
         logger.debug(
@@ -141,72 +130,58 @@ def _get_features_for_key(key: str) -> np.ndarray | None:
             key, len(key_data), _SEQ_LEN,
         )
         return None
-    return key_data[_FEATURE_COLS].values[-_SEQ_LEN:]
+
+    # Base time-series features (request_count, cyclicals)
+    base_cols = ["request_count", "hour_sin", "hour_cos", "dow_sin", "dow_cos"]
+    base_arr = key_data[base_cols].values[-_SEQ_LEN:]   # (seq_len, 5)
+
+    # Encode key label — normalise to [0, 1] using same range as training
+    n_classes = max(len(_global_le.classes_) - 1, 1)
+    try:
+        label_int = _global_le.transform([key])[0]
+    except ValueError:
+        # Unseen key: place at the midpoint of the label range
+        label_int = n_classes / 2
+    key_label_col = np.full((len(base_arr), 1), label_int / n_classes)  # (seq_len, 1)
+
+    return np.hstack([base_arr, key_label_col])   # (seq_len, 6)
 
 
 def _predict_popularity(key: str) -> float:
     """
-    Run the selected model and return a normalised popularity score [0, 1].
-    Falls back to 0.5 if the key is unknown or prediction fails.
+    Run the single global LSTM and return a normalised popularity score [0, 1].
+    Falls back to 0.5 if the model is unavailable or prediction fails.
     """
-    if key not in _models:
-        logger.debug("Unknown key='%s'; using default popularity 0.5", key)
+    if _global_model is None or _global_scaler is None:
+        logger.debug("Global model not loaded; using default popularity 0.5")
         return 0.5
 
-    selected = _key_model_map.get(key, "ARIMA")
+    raw_features = _get_features_for_key(key)
+    if raw_features is None:
+        return 0.5
 
-    if selected == "LSTM":
-        raw_features = _get_features_for_key(key)
-        if raw_features is None:
-            return 0.5
+    try:
+        scaled = _global_scaler.transform(raw_features)          # (seq_len, 6)
+        lstm_input = scaled.reshape(1, _SEQ_LEN, _N_FEATURES)    # (1, seq_len, 6)
 
-        scaler = _scalers[key]
-        scaled = scaler.transform(raw_features)
+        pred_scaled = _global_model.predict(lstm_input, verbose=0).flatten()  # (1,)
 
-        # Reshape to (1, seq_len, n_features)
-        lstm_input = scaled.reshape(1, _SEQ_LEN, _N_FEATURES)
-
-        # Predict — model may output shape (1,1) or (1,n_features) depending
-        # on whether it was trained with the old Dense(1) or new Dense(n_features).
-        pred_scaled = _models[key].predict(lstm_input, verbose=0)
-
-        # Normalise to shape (1, n_features) by padding with zeros so
-        # scaler.inverse_transform always receives the expected column count.
-        n_out = pred_scaled.shape[1]
-        if n_out < _N_FEATURES:
-            dummy = np.zeros((1, _N_FEATURES))
-            dummy[0, :n_out] = pred_scaled[0, :n_out]
-            pred_scaled = dummy
-
-        # Invert scaling to get raw request count (column 0)
-        pred_raw   = scaler.inverse_transform(pred_scaled)   # (1, n_features)
+        # Invert scaling: pad with zeros to reconstruct the full feature row
+        dummy = np.zeros((1, _N_FEATURES))
+        dummy[0, 0] = pred_scaled[0]
+        pred_raw   = _global_scaler.inverse_transform(dummy)
         pred_count = float(pred_raw[0, 0])
 
         popularity = min(1.0, max(0.0, pred_count / _MAX_COUNT))
         logger.debug(
-            "LSTM prediction for key='%s': raw_count=%.2f, popularity=%.3f",
+            "Global LSTM prediction for key='%s': raw_count=%.2f, popularity=%.3f",
             key, pred_count, popularity,
         )
         return popularity
 
-    else:  # ARIMA — run the persisted forecast
-        arima_fit = _models.get(key)
-        if arima_fit is None:
-            # pkl not found at startup — safe fallback
-            logger.debug("ARIMA model unavailable for key='%s'; using fallback 0.5", key)
-            return 0.5
-        try:
-            forecast   = arima_fit.forecast(steps=1)
-            pred_count = float(np.maximum(forecast.iloc[0], 0))
-            popularity = min(1.0, max(0.0, pred_count / _MAX_COUNT))
-            logger.debug(
-                "ARIMA forecast for key='%s': raw_count=%.2f, popularity=%.3f",
-                key, pred_count, popularity,
-            )
-            return popularity
-        except Exception as exc:
-            logger.warning("ARIMA forecast failed for key='%s': %s", key, exc)
-            return 0.5
+    except Exception as exc:
+        logger.warning("Global LSTM prediction failed for key='%s': %s", key, exc)
+        return 0.5
 
 
 def _build_response(
@@ -246,12 +221,13 @@ def predict_ttl(cache_key: str):
     try:
         current_time = datetime.now()
 
-        # Unknown key — return safe default immediately, no model inference
-        if cache_key not in _key_model_map:
+        # Unknown key — still serve via global model (unseen key gets midpoint label)
+        # Only fall back to default if global model itself is unavailable
+        if _global_model is None:
             elapsed_ms = (time.perf_counter() - t_start) * 1000
             logger.info(
-                "Unknown key='%s': returning default TTL=%ds, confidence=0.1 [%.1f ms]",
-                cache_key, cfg.DEFAULT_TTL, elapsed_ms,
+                "Global model unavailable; returning default TTL=%ds for key='%s' [%.1f ms]",
+                cfg.DEFAULT_TTL, cache_key, elapsed_ms,
             )
             return jsonify(
                 _build_response(
@@ -292,9 +268,14 @@ def predict_ttl(cache_key: str):
                 popularity_score, volatility_score, is_hot
             ))
 
-        # 5. Confidence: based on historical data volume for this key
-        key_rows = (_feature_df["cache_key"] == cache_key).sum()
-        confidence = 0.9 if key_rows >= 100 else 0.3
+        # 5. Confidence: 0.9 if key was seen during training, 0.5 if unseen (global model generalises)
+        key_rows = (_feature_df["cache_key"] == cache_key).sum() if not _feature_df.empty else 0
+        if cache_key in _known_keys and key_rows >= 100:
+            confidence = 0.9
+        elif cache_key in _known_keys:
+            confidence = 0.6
+        else:
+            confidence = 0.4  # Unseen key — global model generalises but less certain
 
         elapsed_ms = (time.perf_counter() - t_start) * 1000
         logger.info(
@@ -336,22 +317,22 @@ def health():
         "status":        "ok",
         "model_version": _model_version,
         "generated_at":  _generated_at,
-        "keys_loaded":   len(_models),
+        "model_loaded":  _global_model is not None,
+        "keys_known":    len(_known_keys),
     }), 200
 
 
 @app.route("/api/v1/reload", methods=["POST"])
 def reload_models():
     """
-    Hot-reload all models from disk without restarting the process.
+    Hot-reload the global model from disk without restarting the process.
 
-    Reads model_metadata.json, then reloads every LSTM/ARIMA model
-    and scaler into the in-memory dicts under a threading lock so
-    in-flight requests using the old models finish cleanly.
+    Reloads lstm_global.keras, scaler_global.pkl, label_encoder_global.pkl
+    atomically under a threading lock so in-flight requests finish cleanly.
 
-    Returns JSON with: status, keys_reloaded, model_version.
+    Returns JSON with: status, keys_known, model_version.
     """
-    global _model_version, _generated_at
+    global _model_version, _generated_at, _global_model, _global_scaler, _global_le, _known_keys
 
     logger.info("POST /api/v1/reload — acquiring reload lock...")
     if not _reload_lock.acquire(blocking=False):
@@ -361,61 +342,31 @@ def reload_models():
         # 1. Re-read metadata
         with open(cfg.METADATA_PATH) as f:
             raw_meta = json.load(f)
-        new_meta: list[dict] = raw_meta["models"]
-        new_version: str     = raw_meta.get("version", "unknown")
+        new_version: str      = raw_meta.get("version", "unknown")
         new_generated_at: str = raw_meta.get("generated_at", "unknown")
-        logger.info(
-            "Reload: metadata loaded (%d keys, version=%s)", len(new_meta), new_version
-        )
+        logger.info("Reload: metadata loaded (version=%s)", new_version)
 
-        # 2. Build replacement dicts (do the heavy I/O outside the swap)
-        new_models: dict[str, object]  = {}
-        new_scalers: dict[str, object] = {}
-        new_key_map: dict[str, str]    = {}
-        n_ok = 0
+        # 2. Load new model artefacts (heavy I/O before atomic swap)
+        new_model  = load_model(str(cfg.MODEL_DIR / "lstm_global.keras"))
+        new_scaler = joblib.load(str(cfg.MODEL_DIR / "scaler_global.pkl"))
+        new_le     = joblib.load(str(cfg.MODEL_DIR / "label_encoder_global.pkl"))
+        new_known  = set(new_le.classes_)
 
-        for entry in new_meta:
-            key      = entry["key"]
-            safe_key = entry.get("safe_key", key.replace(":", "_").replace("/", "_"))
-            selected = entry["selected_model"]
-            new_key_map[key] = selected
-
-            if selected == "LSTM":
-                model_path  = cfg.MODEL_DIR / f"lstm_{safe_key}.keras"
-                scaler_path = cfg.MODEL_DIR / f"scaler_{safe_key}.pkl"
-                try:
-                    new_models[key]  = load_model(str(model_path))
-                    new_scalers[key] = joblib.load(str(scaler_path))
-                    n_ok += 1
-                except Exception as exc:
-                    logger.warning("  Reload: LSTM load failed for key='%s': %s", key, exc)
-            else:  # ARIMA
-                arima_path = cfg.MODEL_DIR / f"arima_{safe_key}.pkl"
-                try:
-                    new_models[key] = joblib.load(str(arima_path))
-                    n_ok += 1
-                except Exception as exc:
-                    logger.warning("  Reload: ARIMA load failed for key='%s': %s", key, exc)
-                    new_models[key] = None
-
-        # 3. Atomic swap into module-level globals
-        _models.clear()
-        _models.update(new_models)
-        _scalers.clear()
-        _scalers.update(new_scalers)
-        _key_model_map.clear()
-        _key_model_map.update(new_key_map)
-        _model_version  = new_version
-        _generated_at   = new_generated_at
+        # 3. Atomic swap
+        _global_model  = new_model
+        _global_scaler = new_scaler
+        _global_le     = new_le
+        _known_keys    = new_known
+        _model_version = new_version
+        _generated_at  = new_generated_at
 
         logger.info(
-            "Reload complete: %d/%d keys loaded successfully (version=%s)",
-            n_ok, len(new_meta), new_version,
+            "Reload complete: global model loaded | %d known keys (version=%s)",
+            len(_known_keys), new_version,
         )
         return jsonify({
             "status":        "ok",
-            "keys_reloaded": n_ok,
-            "keys_total":    len(new_meta),
+            "keys_known":    len(_known_keys),
             "model_version": new_version,
             "generated_at":  new_generated_at,
         }), 200

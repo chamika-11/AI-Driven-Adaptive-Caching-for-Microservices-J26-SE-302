@@ -258,8 +258,8 @@ def run_retraining() -> bool:
         with urllib.request.urlopen(req, timeout=30) as resp:
             body = json.loads(resp.read().decode())
             logger.info(
-                "API reload successful: keys_reloaded=%s, version=%s",
-                body.get("keys_reloaded"), body.get("model_version"),
+                "API reload successful: keys_known=%s, version=%s",
+                body.get("keys_known") or body.get("keys_reloaded"), body.get("model_version"),
             )
     except Exception as exc:
         # Non-fatal: models on disk are correct; API will use them on next restart.
