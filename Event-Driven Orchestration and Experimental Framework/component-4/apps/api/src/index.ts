@@ -1,9 +1,26 @@
-import "dotenv/config";
-import { app } from "./app.js";
+// ─────────────────────────────────────────────────────────────────────────────
+// Server Entry Point — Component 4 API
+// "Event Intelligence & Context-Aware Feature Engineering"
+//
+// Loads environment, connects to MongoDB Atlas, and starts the HTTP listener.
+// ─────────────────────────────────────────────────────────────────────────────
 
-const PORT = parseInt(process.env["API_PORT"] ?? "4004", 10);
-const HOST = process.env["API_HOST"] ?? "0.0.0.0";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import dotenv from "dotenv";
 
-app.listen(PORT, HOST, () => {
-  console.log(`[Component 4 API] listening on http://${HOST}:${PORT}`);
+// In a monorepo setup, prioritize root .env then local apps/api/.env
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
+dotenv.config();
+
+import { startServer } from "./server.js";
+
+// Execute startup sequence when launched as primary process
+startServer().catch((error) => {
+  const message = error instanceof Error ? error.message : String(error);
+  console.error(`[Fatal Startup Error] API server failed to start: ${message}`);
+  process.exit(1);
 });
+

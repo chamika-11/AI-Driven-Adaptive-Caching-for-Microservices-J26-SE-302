@@ -20,7 +20,20 @@ export interface HealthCheckResponse {
   timestamp: string;
 }
 
-// ── Placeholder namespace — expanded in later phases ─────────────────────────
+// ── Event data model & operation types ───────────────────────────────────────
+
+export * from "./types/index.js";
+
+// ── Event validation schemas ─────────────────────────────────────────────────
+
+export * from "./schemas/index.js";
+
+// ── Sample event fixtures & seed data ─────────────────────────────────────────
+
+export * from "./fixtures/index.js";
+
+// ── Component metadata ───────────────────────────────────────────────────────
 
 export const COMPONENT_NAME = "Event Intelligence & Context-Aware Feature Engineering" as const;
 export const COMPONENT_ID = "component-4" as const;
+
