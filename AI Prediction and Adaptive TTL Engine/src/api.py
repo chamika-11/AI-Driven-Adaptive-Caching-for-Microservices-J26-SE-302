@@ -31,6 +31,35 @@ from config import cfg
 from fusion_engine import TTLFusionEngine
 from hotkey_detector import HotKeyDetector
 from volatility import VolatilityEngine
+from cdc_consumer import CDCKafkaConsumer
+from prometheus_client import Counter, Gauge, Histogram, generate_latest, CONTENT_TYPE_LATEST
+
+# ── Prometheus Telemetry Metrics ──────────────────────────────────────────────
+PROM_REQUESTS_TOTAL = Counter(
+    "cache_requests_total",
+    "Total requests processed by the Adaptive TTL Engine",
+    ["cache_key", "status"]
+)
+PROM_PREDICT_LATENCY = Histogram(
+    "cache_predict_latency_seconds",
+    "Latency of predict requests in seconds",
+    buckets=[0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5]
+)
+PROM_SUGGESTED_TTL = Gauge(
+    "cache_suggested_ttl_seconds",
+    "Latest suggested TTL in seconds",
+    ["cache_key"]
+)
+PROM_VOLATILITY_SCORE = Gauge(
+    "cache_volatility_score",
+    "Latest EWMA volatility score (0.0 to 1.0)",
+    ["cache_key"]
+)
+PROM_POPULARITY_SCORE = Gauge(
+    "cache_popularity_score",
+    "Latest predicted popularity score (0.0 to 1.0)",
+    ["cache_key"]
+)
 
 app = Flask(__name__)
 
@@ -129,8 +158,9 @@ except Exception as exc:
     logger.error("Could not load DB update log: %s", exc)
     _db_updates_df = pd.DataFrame(columns=["timestamp", "cache_key"])
 
-# ── Engine instances ──────────────────────────────────────────────────────────
 _volatility_engine = VolatilityEngine(alpha=cfg.EWMA_ALPHA)
+_cdc_consumer      = CDCKafkaConsumer(volatility_engine=_volatility_engine)
+_cdc_consumer.start()
 _hotkey_detector   = HotKeyDetector(
     threshold=cfg.HOTKEY_THRESHOLD,
     window_seconds=cfg.HOTKEY_WINDOW_SECONDS,
@@ -414,6 +444,16 @@ def predict_ttl(cache_key: str):
         resp_data["latency_ms"] = round(elapsed_ms, 2)
         resp_data["timestamp"] = datetime.now().strftime("%H:%M:%S")
 
+        # Record Prometheus Telemetry Metrics
+        try:
+            PROM_REQUESTS_TOTAL.labels(cache_key=canonical_key, status="success").inc()
+            PROM_PREDICT_LATENCY.observe(elapsed_ms / 1000.0)
+            PROM_SUGGESTED_TTL.labels(cache_key=canonical_key).set(suggested_ttl)
+            PROM_VOLATILITY_SCORE.labels(cache_key=canonical_key).set(volatility_score)
+            PROM_POPULARITY_SCORE.labels(cache_key=canonical_key).set(popularity_score)
+        except Exception:
+            pass
+
         with _telemetry_lock:
             _telemetry_history.append(resp_data)
             _telemetry_stats["total_predictions"] += 1
@@ -429,6 +469,10 @@ def predict_ttl(cache_key: str):
             "Error predicting for key='%s': %s [%.1f ms]",
             cache_key, exc, elapsed_ms, exc_info=True,
         )
+        try:
+            PROM_REQUESTS_TOTAL.labels(cache_key=canonical_key, status="fallback").inc()
+        except Exception:
+            pass
         # Safe default response — never return a 500 to the caller
         fallback_data = _build_response(
             cache_key=cache_key,
@@ -619,8 +663,36 @@ def dashboard_stats():
             "hotkey_threshold": cfg.HOTKEY_THRESHOLD,
             "hotkey_window_seconds": cfg.HOTKEY_WINDOW_SECONDS,
             "ewma_alpha": cfg.EWMA_ALPHA,
+        },
+        "cdc_telemetry": _cdc_consumer.status(),
+        "prometheus_telemetry": {
+            "endpoint": "/metrics",
+            "scrape_port": cfg.PORT,
+            "status": "ACTIVE"
         }
     }), 200
+
+
+@app.route("/metrics", methods=["GET"])
+def prometheus_metrics():
+    """Prometheus exposition metrics endpoint."""
+    return generate_latest(), 200, {"Content-Type": CONTENT_TYPE_LATEST}
+
+
+@app.route("/api/v1/cdc/status", methods=["GET"])
+def cdc_status():
+    """Diagnostic status of Kafka CDC consumer."""
+    return jsonify(_cdc_consumer.status()), 200
+
+
+@app.route("/api/v1/cdc/simulate", methods=["POST"])
+def cdc_simulate():
+    """Simulate a Debezium CDC database mutation event for testing."""
+    body = request.get_json(silent=True) or {}
+    key = body.get("cache_key", "twitter:key:6")
+    op = body.get("op", "u")
+    result = _cdc_consumer.simulate_mutation(key, op)
+    return jsonify(result), 200
 
 
 @app.route("/api/v1/retrain/trigger", methods=["POST"])
