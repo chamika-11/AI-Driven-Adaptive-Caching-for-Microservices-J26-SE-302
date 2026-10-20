@@ -103,6 +103,20 @@ class VolatilityEngine:
         score = max(0.0, min(1.0, self._volatilities[key]))
         return score
 
+    def record_mutation(self, key: str, weight: float = 0.5) -> float:
+        """
+        Directly record an incoming real-time CDC mutation from Debezium/Kafka.
+        
+        Bumps the EWMA volatility score for `key` so that incoming mutations immediately
+        impact the TTL without waiting for batch CSV updates.
+        """
+        prev = self._volatilities.get(key, 0.0)
+        # Apply EWMA bump
+        new_vol = min(1.0, max(0.0, self.alpha * weight + (1.0 - self.alpha) * max(prev, 0.2)))
+        self._volatilities[key] = new_vol
+        logger.info("Real-time CDC mutation recorded for key='%s': prev=%.3f -> new=%.3f", key, prev, new_vol)
+        return new_vol
+
     def get(self, key: str) -> float:
         """Return the last known volatility for a key, or 0.0 if unseen."""
         return self._volatilities.get(key, 0.0)
