@@ -11,6 +11,7 @@ Usage:
 """
 
 import argparse
+import json
 import logging
 import os
 import sys
@@ -85,22 +86,68 @@ def ingest_trace(
     logger.info("Total Read ops (get/gets): %d", len(reads_df))
     logger.info("Total Write/Update ops (add/set/cas): %d", len(writes_df))
 
-    # Identify the Top-K most active keys
-    key_counts = reads_df["cache_key"].value_counts()
-    selected_keys = set(key_counts.head(top_keys).index)
-    logger.info(
-        "Filtered to Top %d most active keys (covering %d / %d reads, %.1f%%):",
-        top_keys,
-        key_counts.head(top_keys).sum(),
-        len(reads_df),
-        (key_counts.head(top_keys).sum() / len(reads_df)) * 100,
-    )
-    for idx, (k, cnt) in enumerate(key_counts.head(top_keys).items(), 1):
-        logger.info("  #%d: %s (requests: %d)", idx, k, cnt)
+    # Identify active keys from real Twitter cluster operations:
+    # 1. Top 5 pure read-intensive keys
+    # 2. Top 5 keys that have BOTH frequent reads AND writes (for realistic EWMA volatility testing)
+    read_counts = reads_df["cache_key"].value_counts()
+    write_counts = writes_df["cache_key"].value_counts()
 
-    # Filter reads and writes to the selected keys
-    filtered_reads = reads_df[reads_df["cache_key"].isin(selected_keys)].copy()
-    filtered_writes = writes_df[writes_df["cache_key"].isin(selected_keys)].copy()
+    common_keys = set(read_counts.index).intersection(set(write_counts.index))
+    
+    # 5 top read keys
+    pure_read_keys = [k for k in read_counts.index if k not in common_keys][:5]
+    if len(pure_read_keys) < 5:
+        pure_read_keys = list(read_counts.index[:5])
+        
+    # 5 active read + write keys
+    active_rw_keys = list(writes_df[writes_df["cache_key"].isin(common_keys)]["cache_key"].value_counts().index[:5])
+    
+    selected_raw_keys = pure_read_keys + active_rw_keys
+    # Ensure exactly top_keys unique keys
+    seen = set()
+    final_selected = []
+    for k in selected_raw_keys:
+        if k not in seen:
+            seen.add(k)
+            final_selected.append(k)
+    # Fill remaining from read_counts if needed
+    for k in read_counts.index:
+        if len(final_selected) >= top_keys:
+            break
+        if k not in seen:
+            seen.add(k)
+            final_selected.append(k)
+
+    key_aliases = {k: f"twitter:key:{idx + 1}" for idx, k in enumerate(final_selected)}
+    reverse_map = {
+        f"twitter:key:{idx + 1}": {
+            "raw_key": k,
+            "reads": int(read_counts.get(k, 0)),
+            "writes": int(write_counts.get(k, 0)),
+            "type": "read_heavy" if write_counts.get(k, 0) == 0 else "volatile_rw"
+        }
+        for idx, k in enumerate(final_selected)
+    }
+
+    # Save mapping for transparent Twitter data provenance
+    map_path = output_raw_logs.parent / "twitter_key_map.json"
+    with open(map_path, "w") as f:
+        json.dump(reverse_map, f, indent=2)
+    logger.info("Saved Twitter trace key provenance map -> %s", map_path)
+
+    for idx, k in enumerate(final_selected, 1):
+        info = reverse_map[f"twitter:key:{idx}"]
+        logger.info(
+            "  #%d: twitter:key:%d (%s) -> %d reads, %d writes [%s]",
+            idx, idx, k[:18] + "...", info["reads"], info["writes"], info["type"]
+        )
+
+    # Filter reads and writes to the selected keys and map to canonical twitter aliases
+    filtered_reads = reads_df[reads_df["cache_key"].isin(final_selected)].copy()
+    filtered_writes = writes_df[writes_df["cache_key"].isin(final_selected)].copy()
+
+    filtered_reads["cache_key"] = filtered_reads["cache_key"].map(key_aliases)
+    filtered_writes["cache_key"] = filtered_writes["cache_key"].map(key_aliases)
 
     # Map relative trace seconds to synthetic ISO datetimes
     base_time = datetime(2026, 7, 1, 0, 0, 0)
@@ -121,24 +168,19 @@ def ingest_trace(
     raw_logs = filtered_reads[["timestamp", "cache_key"]].sort_values("timestamp")
     db_updates = filtered_writes[["timestamp", "cache_key"]].sort_values("timestamp")
 
-    # If filtered_writes has no updates for some keys, add minimal baseline updates
+    # If filtered_writes has no updates for some keys, add baseline write entry
     if len(db_updates) == 0:
-        logger.warning(
-            "Selected top keys had no write operations in trace window. Synthesizing low-rate writes."
-        )
-        synthetic_records = []
-        for k in selected_keys:
-            synthetic_records.append({"timestamp": base_time, "cache_key": k})
-        db_updates = pd.DataFrame(synthetic_records)
+        logger.warning("No writes captured; generating minimal baseline writes.")
+        db_updates = pd.DataFrame([{"timestamp": base_time, "cache_key": f"twitter:key:{i+1}"} for i in range(top_keys)])
 
-    # Save to CSV
+    # Save exclusively from Twitter cluster data
     output_raw_logs.parent.mkdir(parents=True, exist_ok=True)
     raw_logs.to_csv(output_raw_logs, index=False)
-    logger.info("Saved %d rows to: %s", len(raw_logs), output_raw_logs)
+    logger.info("Saved %d rows exclusively from Twitter trace to: %s", len(raw_logs), output_raw_logs)
 
     output_db_updates.parent.mkdir(parents=True, exist_ok=True)
     db_updates.to_csv(output_db_updates, index=False)
-    logger.info("Saved %d rows to: %s", len(db_updates), output_db_updates)
+    logger.info("Saved %d rows exclusively from Twitter trace to: %s", len(db_updates), output_db_updates)
 
     logger.info("Trace ingestion complete!")
 

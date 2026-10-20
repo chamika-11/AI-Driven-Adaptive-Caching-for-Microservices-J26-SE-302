@@ -1,23 +1,23 @@
 {
   "version": "2",
   "mode": "global_shared",
-  "generated_at": "2026-10-19T06:35:24.322038Z",
+  "generated_at": "2026-10-19T09:59:53.179567Z",
   "models": [
     {
       "key": "global",
       "safe_key": "global",
       "n_keys": 10,
       "keys": [
-        "user:10:data",
-        "user:1:data",
-        "user:2:data",
-        "user:3:data",
-        "user:4:data",
-        "user:5:data",
-        "user:6:data",
-        "user:7:data",
-        "user:8:data",
-        "user:9:data"
+        "twitter:key:1",
+        "twitter:key:10",
+        "twitter:key:2",
+        "twitter:key:3",
+        "twitter:key:4",
+        "twitter:key:5",
+        "twitter:key:6",
+        "twitter:key:7",
+        "twitter:key:8",
+        "twitter:key:9"
       ],
       "n_features": 6,
       "feature_cols": [
@@ -28,10 +28,11 @@
         "dow_cos",
         "key_label"
       ],
-      "lstm_rmse": 0.5930006830309463,
+      "lstm_rmse": 1.3807,
+      "arima_rmse": 82.8492,
       "selected_model": "LSTM",
-      "winner_rmse": 0.5930006830309463,
-      "trained_at": "2026-10-19T06:35:24.296250Z"
+      "winner_rmse": 1.3807,
+      "trained_at": "2026-10-19T09:59:53.175739Z"
     }
   ]
 }
