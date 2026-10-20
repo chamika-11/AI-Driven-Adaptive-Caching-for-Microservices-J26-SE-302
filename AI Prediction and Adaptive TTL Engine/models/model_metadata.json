@@ -1,96 +1,38 @@
 {
-  "version": "1",
-  "generated_at": "2026-08-21T18:40:02.710391Z",
+  "version": "2",
+  "mode": "global_shared",
+  "generated_at": "2026-10-19T09:59:53.179567Z",
   "models": [
     {
-      "key": "user:10:data",
-      "safe_key": "user_10_data",
-      "arima_rmse": 0.5270744096607497,
-      "lstm_rmse": 0.374357549008657,
+      "key": "global",
+      "safe_key": "global",
+      "n_keys": 10,
+      "keys": [
+        "twitter:key:1",
+        "twitter:key:10",
+        "twitter:key:2",
+        "twitter:key:3",
+        "twitter:key:4",
+        "twitter:key:5",
+        "twitter:key:6",
+        "twitter:key:7",
+        "twitter:key:8",
+        "twitter:key:9"
+      ],
+      "n_features": 6,
+      "feature_cols": [
+        "request_count",
+        "hour_sin",
+        "hour_cos",
+        "dow_sin",
+        "dow_cos",
+        "key_label"
+      ],
+      "lstm_rmse": 1.3807,
+      "arima_rmse": 82.8492,
       "selected_model": "LSTM",
-      "winner_rmse": 0.374357549008657,
-      "trained_at": "2026-08-21T18:40:02.710391Z"
-    },
-    {
-      "key": "user:1:data",
-      "safe_key": "user_1_data",
-      "arima_rmse": 0.7595268995305584,
-      "lstm_rmse": 0.3588064321376478,
-      "selected_model": "LSTM",
-      "winner_rmse": 0.3588064321376478,
-      "trained_at": "2026-08-21T18:40:02.710391Z"
-    },
-    {
-      "key": "user:2:data",
-      "safe_key": "user_2_data",
-      "arima_rmse": 0.5568323350035606,
-      "lstm_rmse": 0.3792747410211007,
-      "selected_model": "LSTM",
-      "winner_rmse": 0.3792747410211007,
-      "trained_at": "2026-08-21T18:40:02.710391Z"
-    },
-    {
-      "key": "user:3:data",
-      "safe_key": "user_3_data",
-      "arima_rmse": 0.7254655461343167,
-      "lstm_rmse": 0.3719177471829713,
-      "selected_model": "LSTM",
-      "winner_rmse": 0.3719177471829713,
-      "trained_at": "2026-08-21T18:40:02.710391Z"
-    },
-    {
-      "key": "user:4:data",
-      "safe_key": "user_4_data",
-      "arima_rmse": 0.4755221407897501,
-      "lstm_rmse": 0.376267124964027,
-      "selected_model": "LSTM",
-      "winner_rmse": 0.376267124964027,
-      "trained_at": "2026-08-21T18:40:02.710391Z"
-    },
-    {
-      "key": "user:5:data",
-      "safe_key": "user_5_data",
-      "arima_rmse": 0.5247321876570342,
-      "lstm_rmse": 0.3940767167662792,
-      "selected_model": "LSTM",
-      "winner_rmse": 0.3940767167662792,
-      "trained_at": "2026-08-21T18:40:02.710391Z"
-    },
-    {
-      "key": "user:6:data",
-      "safe_key": "user_6_data",
-      "arima_rmse": 0.5411147270790528,
-      "lstm_rmse": 0.3831130229535946,
-      "selected_model": "LSTM",
-      "winner_rmse": 0.3831130229535946,
-      "trained_at": "2026-08-21T18:40:02.710391Z"
-    },
-    {
-      "key": "user:7:data",
-      "safe_key": "user_7_data",
-      "arima_rmse": 0.5857124713902633,
-      "lstm_rmse": 0.4041055501979984,
-      "selected_model": "LSTM",
-      "winner_rmse": 0.4041055501979984,
-      "trained_at": "2026-08-21T18:40:02.710391Z"
-    },
-    {
-      "key": "user:8:data",
-      "safe_key": "user_8_data",
-      "arima_rmse": 0.584848703289045,
-      "lstm_rmse": 0.3660154397001841,
-      "selected_model": "LSTM",
-      "winner_rmse": 0.3660154397001841,
-      "trained_at": "2026-08-21T18:40:02.710391Z"
-    },
-    {
-      "key": "user:9:data",
-      "safe_key": "user_9_data",
-      "arima_rmse": 0.6484990165265618,
-      "lstm_rmse": 0.3675085332287178,
-      "selected_model": "LSTM",
-      "winner_rmse": 0.3675085332287178,
-      "trained_at": "2026-08-21T18:40:02.710391Z"
+      "winner_rmse": 1.3807,
+      "trained_at": "2026-10-19T09:59:53.175739Z"
     }
   ]
 }

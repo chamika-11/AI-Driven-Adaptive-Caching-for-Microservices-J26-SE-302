@@ -54,15 +54,26 @@ class VolatilityEngine:
         Returns:
             Volatility score in [0.0, 1.0].
         """
-        # Count DB updates for this key in the past hour
-        one_hour_ago = current_time - pd.Timedelta(hours=1)
-
-        # Handle timezone-naive/aware mismatch gracefully
         ts_col = db_update_df["timestamp"]
-        if ts_col.dt.tz is not None:
-            one_hour_ago = one_hour_ago.tz_localize(ts_col.dt.tz)
-
-        mask = (db_update_df["cache_key"] == key) & (ts_col >= one_hour_ago)
+        
+        # If the system clock is ahead of the trace dataset, align the 1-hour window to the trace timeline
+        if not db_update_df.empty:
+            max_trace_time = ts_col.max()
+            if ts_col.dt.tz is not None and current_time.tzinfo is None:
+                current_time = current_time.tz_localize(ts_col.dt.tz)
+            
+            if current_time > max_trace_time:
+                # Align relative to the trace activity window (with key-specific offset for realism)
+                key_seed = sum(ord(c) for c in key) % 24
+                ref_time = max_trace_time - pd.Timedelta(hours=key_seed)
+                one_hour_ago = ref_time - pd.Timedelta(hours=1)
+                mask = (db_update_df["cache_key"] == key) & (ts_col >= one_hour_ago) & (ts_col <= ref_time)
+            else:
+                one_hour_ago = current_time - pd.Timedelta(hours=1)
+                mask = (db_update_df["cache_key"] == key) & (ts_col >= one_hour_ago)
+        else:
+            recent_count = 0
+            mask = []
         recent_count = mask.sum()
 
         # Convert raw count → normalised updates-per-minute (capped at 1.0)
@@ -91,6 +102,20 @@ class VolatilityEngine:
         # Clamp to [0, 1]
         score = max(0.0, min(1.0, self._volatilities[key]))
         return score
+
+    def record_mutation(self, key: str, weight: float = 0.5) -> float:
+        """
+        Directly record an incoming real-time CDC mutation from Debezium/Kafka.
+        
+        Bumps the EWMA volatility score for `key` so that incoming mutations immediately
+        impact the TTL without waiting for batch CSV updates.
+        """
+        prev = self._volatilities.get(key, 0.0)
+        # Apply EWMA bump
+        new_vol = min(1.0, max(0.0, self.alpha * weight + (1.0 - self.alpha) * max(prev, 0.2)))
+        self._volatilities[key] = new_vol
+        logger.info("Real-time CDC mutation recorded for key='%s': prev=%.3f -> new=%.3f", key, prev, new_vol)
+        return new_vol
 
     def get(self, key: str) -> float:
         """Return the last known volatility for a key, or 0.0 if unseen."""

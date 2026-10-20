@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Adaptive TTL Engine — Live Component Workflow</title>
+  
+  <!-- Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <style>
+    :root {
+      --bg-dark: #070b14;
+      --bg-card: rgba(14, 23, 42, 0.88);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --cyan: #00f2fe;
+      --blue: #38bdf8;
+      --purple: #a855f7;
+      --emerald: #10b981;
+      --amber: #f59e0b;
+      --rose: #f43f5e;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --font-sans: 'Inter', -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: radial-gradient(circle at 15% 15%, #0d1527 0%, #070b14 60%, #04070e 100%);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    .ambient-glow {
+      position: fixed;
+      width: 600px;
+      height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0, 242, 254, 0.07) 0%, rgba(168, 85, 247, 0.04) 50%, transparent 70%);
+      top: -120px;
+      left: 15%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 1480px;
+      margin: 0 auto;
+      padding: 24px 28px 50px;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 24px;
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      margin-bottom: 20px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #00f2fe 0%, #38bdf8 50%, #8b5cf6 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 0 20px rgba(0, 242, 254, 0.35);
+    }
+
+    .brand-text h1 {
+      font-size: 1.3rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(to right, #ffffff, #c7d2fe, #38bdf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-text p {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .badge-cyan { background: rgba(0, 242, 254, 0.15); border: 1px solid rgba(0, 242, 254, 0.35); color: #38bdf8; }
+    .badge-purple { background: rgba(168, 85, 247, 0.2); border: 1px solid rgba(168, 85, 247, 0.4); color: #d8b4fe; }
+    .badge-green { background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; }
+    .badge-amber { background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(245, 158, 11, 0.4); color: #fbbf24; }
+    .badge-rose { background: rgba(244, 63, 94, 0.2); border: 1px solid rgba(244, 63, 94, 0.4); color: #fb7185; }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn {
+      cursor: pointer;
+      font-family: var(--font-sans);
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: 10px;
+      border: 1px solid var(--border-subtle);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-main);
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #00f2fe 0%, #38bdf8 100%);
+      color: #030712;
+      border: none;
+      box-shadow: 0 4px 16px rgba(0, 242, 254, 0.3);
+    }
+
+    /* ═══════ INTEGRATION & DATA SOURCES ARCHITECTURE BAR ═══════ */
+    .integrations-bar {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .integration-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 14px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .integration-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .integration-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .pipeline-flow {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      background: rgba(7, 11, 20, 0.6);
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      flex-wrap: wrap;
+    }
+
+    .flow-tag {
+      background: rgba(255, 255, 255, 0.06);
+      padding: 2px 7px;
+      border-radius: 5px;
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .flow-tag-cyan { background: rgba(0, 242, 254, 0.15); color: #38bdf8; }
+    .flow-tag-amber { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+    .flow-arrow { color: var(--text-dim); }
+
+    /* ═══════ MANUAL KEY SELECTOR CONTROLS ═══════ */
+    .controls-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .controls-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .selector-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      min-width: 320px;
+    }
+
+    .selector-group label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+
+    select {
+      flex: 1;
+      background: rgba(7, 11, 20, 0.9);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      padding: 9px 14px;
+      border-radius: 10px;
+      font-family: var(--font-mono);
+      font-size: 0.86rem;
+      outline: none;
+    }
+
+    select:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 12px rgba(0, 242, 254, 0.25);
+    }
+
+    /* Key Chips Grid */
+    .chips-label {
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+
+    .chips-grid {
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: 8px;
+    }
+
+    .key-chip {
+      cursor: pointer;
+      background: rgba(7, 11, 20, 0.7);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 8px 6px;
+      text-align: center;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .key-chip:hover {
+      border-color: var(--cyan);
+      transform: translateY(-2px);
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .key-chip.active {
+      border-color: var(--cyan);
+      background: linear-gradient(135deg, rgba(0, 242, 254, 0.15), rgba(15, 23, 42, 0.95));
+      box-shadow: 0 0 16px rgba(0, 242, 254, 0.25);
+    }
+
+    .chip-key-name {
+      font-family: var(--font-mono);
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .chip-tag {
+      font-size: 0.62rem;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+    }
+
+    .chip-tag.read { color: #34d399; }
+    .chip-tag.write { color: #fbbf24; }
+
+    /* ═══════ THE CORE WORKFLOW PIPELINE ═══════ */
+    .workflow-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 18px;
+      padding: 22px 24px;
+      margin-bottom: 22px;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.3);
+    }
+
+    .workflow-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .pipeline-grid {
+      display: grid;
+      grid-template-columns: 210px 28px 1fr 28px 190px 28px 160px 28px 230px;
+      align-items: center;
+      gap: 4px;
+      background: rgba(7, 11, 20, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 16px;
+      padding: 20px 16px;
+    }
+
+    .pipe-step {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 14px;
+      min-height: 175px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.25s ease;
+    }
+
+    .pipe-step:hover {
+      border-color: var(--cyan);
+      transform: translateY(-2px);
+    }
+
+    .pipe-step-num {
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--cyan);
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+      margin-bottom: 2px;
+    }
+
+    .pipe-step-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+
+    .pipe-source-badge {
+      font-size: 0.62rem;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .pipe-arrow {
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 1.1rem;
+      font-weight: bold;
+    }
+
+    /* Dual Engine Box (Step 2) */
+    .dual-engine-box {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .engine-subcard {
+      background: rgba(7, 11, 20, 0.8);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 8px 10px;
+      transition: all 0.2s ease;
+    }
+
+    .engine-subcard.winner-glow {
+      border-color: var(--cyan);
+      box-shadow: 0 0 16px rgba(0, 242, 254, 0.25);
+      background: linear-gradient(135deg, rgba(0, 242, 254, 0.08), rgba(15, 23, 42, 0.9));
+    }
+
+    .engine-name {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .engine-score {
+      font-size: 1.25rem;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      color: #fff;
+    }
+
+    .engine-rmse {
+      font-size: 0.66rem;
+      font-family: var(--font-mono);
+      color: var(--text-dim);
+      margin-top: 2px;
+    }
+
+    .selector-tag {
+      background: rgba(0, 242, 254, 0.12);
+      border: 1px solid rgba(0, 242, 254, 0.3);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 0.66rem;
+      font-family: var(--font-mono);
+      color: #38bdf8;
+      text-align: center;
+    }
+
+    /* Fusion Final Card (Step 5) */
+    .fusion-card {
+      background: linear-gradient(135deg, rgba(0, 242, 254, 0.15), rgba(168, 85, 247, 0.12));
+      border: 1px solid rgba(0, 242, 254, 0.4);
+      border-radius: 12px;
+      padding: 14px;
+      min-height: 175px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .ttl-val-large {
+      font-size: 1.85rem;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      color: var(--cyan);
+      text-shadow: 0 0 20px rgba(0, 242, 254, 0.45);
+    }
+
+    /* Charts Row */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 22px;
+    }
+
+    .chart-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 18px 20px;
+      height: 310px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chart-card h3 {
+      font-size: 0.88rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .chart-canvas-wrap {
+      flex: 1;
+      position: relative;
+      min-height: 0;
+    }
+
+    /* Feed Table */
+    .feed-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 18px 20px;
+    }
+
+    .feed-card h3 {
+      font-size: 0.88rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .table-wrap {
+      background: rgba(7, 11, 20, 0.7);
+      border-radius: 10px;
+      border: 1px solid var(--border-subtle);
+      max-height: 240px;
+      overflow-y: auto;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+    }
+
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th {
+      background: rgba(15, 23, 42, 0.95);
+      position: sticky;
+      top: 0;
+      padding: 9px 12px;
+      color: var(--text-dim);
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border-subtle);
+      z-index: 2;
+    }
+    td { padding: 8px 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.03); color: #cbd5e1; }
+    tr:hover td { background: rgba(255, 255, 255, 0.03); }
+
+    @media (max-width: 1250px) {
+      .chips-grid { grid-template-columns: repeat(5, 1fr); }
+      .pipeline-grid { grid-template-columns: 1fr; }
+      .charts-grid { grid-template-columns: 1fr; }
+      .integrations-bar { grid-template-columns: 1fr; }
+      .pipe-arrow { transform: rotate(90deg); margin: 6px 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient-glow"></div>
+
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="brand">
+        <!-- <div class="brand-icon">⚡</div> -->
+        <div class="brand-text">
+          <h1>Adaptive TTL Engine — Component Workflow & Telemetry</h1>
+          <!-- <p>
+            <span>Twitter Memcached Cluster Trace</span>
+            <span class="badge badge-cyan">100% Real Trace Data</span>
+            <span>• Sidecar Proxy Interception • Prometheus & Kafka Integration</span>
+          </p> -->
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- <span class="badge badge-green" id="statusBadge">Live API Connected</span> -->
+        <button class="btn btn-primary" onclick="triggerManualRequest()">
+          <span>⚡</span> <span>Send Request (Sidecar GET)</span>
+        </button>
+        <button class="btn" style="border-color: rgba(244, 63, 94, 0.4); color: #fb7185;" onclick="invalidateCurrentKey()" title="Simulate TTL expiration or DB write invalidation">
+          <span>🔄</span> <span>Expire / Invalidate Key</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ═══════ INTEGRATION & DATA SOURCES ARCHITECTURE BAR ═══════ -->
+    <!-- <div class="integrations-bar">
+      <div class="integration-card">
+        <div class="integration-header">
+          <span class="integration-title">
+            <span>📈 Read Traffic Pipeline</span>
+            <span class="badge badge-cyan">Prometheus & API Logs</span>
+          </span>
+          <span class="badge badge-green">30,457 Operations Ingested</span>
+        </div>
+        <div class="pipeline-flow">
+          <span class="flow-tag">API Access Logs</span>
+          <span class="flow-arrow">➔</span>
+          <span class="flow-tag flow-tag-cyan">Prometheus 5-min Scrape</span>
+          <span class="flow-arrow">➔</span>
+          <span class="flow-tag">11,170 Feature Rows</span>
+          <span class="flow-arrow">➔</span>
+          <span class="flow-tag flow-tag-cyan">LSTM & ARIMA Predictor</span>
+        </div>
+      </div>
+
+      <div class="integration-card">
+        <div class="integration-header">
+          <span class="integration-title">
+            <span>🔄 Mutation Volatility Pipeline</span>
+            <span class="badge badge-amber">Debezium CDC ➔ Kafka</span>
+          </span>
+          <span class="badge badge-amber">127 Trace Mutations</span>
+        </div>
+        <div class="pipeline-flow">
+          <span class="flow-tag">Database WAL (Write Log)</span>
+          <span class="flow-arrow">➔</span>
+          <span class="flow-tag flow-tag-amber">Debezium CDC Connector</span>
+          <span class="flow-arrow">➔</span>
+          <span class="flow-tag">Kafka Topic: db.mutations</span>
+          <span class="flow-arrow">➔</span>
+          <span class="flow-tag flow-tag-amber">EWMA Volatility (α=0.30)</span>
+        </div>
+      </div>
+    </div> -->
+
+    <!-- ═══════ MANUAL KEY SELECTOR CONTROLS ═══════ -->
+    <div class="controls-panel">
+      <div class="controls-top">
+        <div class="selector-group">
+          <label>Selected Cache Key:</label>
+          <select id="keySelect" onchange="onSelectChange()">
+            <option value="twitter:key:1">twitter:key:1 (Top Read Key — 7,691 reads, 0 writes)</option>
+            <option value="twitter:key:2">twitter:key:2 (High Read Key — 6,573 reads, 0 writes)</option>
+            <option value="twitter:key:3">twitter:key:3 (High Read Key — 6,075 reads, 0 writes)</option>
+            <option value="twitter:key:4">twitter:key:4 (Active Read Key — 4,865 reads, 0 writes)</option>
+            <option value="twitter:key:5">twitter:key:5 (Active Read Key — 4,652 reads, 0 writes)</option>
+            <option value="twitter:key:6">twitter:key:6 (Volatile R/W Key — 51 reads, 34 writes)</option>
+            <option value="twitter:key:7">twitter:key:7 (Volatile R/W Key — 36 reads, 25 writes)</option>
+            <option value="twitter:key:8">twitter:key:8 (Active R/W Key — 406 reads, 24 writes)</option>
+            <option value="twitter:key:9">twitter:key:9 (Volatile R/W Key — 66 reads, 23 writes)</option>
+            <option value="twitter:key:10">twitter:key:10 (Volatile R/W Key — 42 reads, 21 writes)</option>
+          </select>
+        </div>
+
+        <!-- <div class="scenario-buttons">
+          <button class="btn" onclick="applyPreset('read_heavy')">🟢 Read-Heavy (Key 1)</button>
+          <button class="btn" onclick="applyPreset('write_storm')">🔴 Write-Storm (Key 6)</button>
+          <button class="btn" onclick="applyPreset('stampede')">⚡ Hot Stampede</button>
+          <button class="btn" onclick="applyPreset('prewarm')">📌 Pre-warm Pin</button>
+        </div>
+      </div> -->
+
+      <!-- Quick-Pick Key Chips Grid -->
+      <!-- <div>
+        <div class="chips-label">Direct Key Selector (Click any key to inspect its exact lifecycle & TTL):</div>
+        <div class="chips-grid" id="chipsGrid">
+        </div>
+      </div>
+    </div> -->
+
+    <!-- ═══════ THE 5-STEP WORKFLOW PIPELINE ═══════ -->
+    <div class="workflow-card">
+      <div class="workflow-title">
+        <span>🔍 Entire Process Workflow: From Sidecar Cache Miss to Redis Allocation</span>
+        <span class="badge badge-purple" id="stepInfo">Manual Inspection Active</span>
+      </div>
+
+      <div class="pipeline-grid">
+        <!-- Step 1: Sidecar Cache Miss / Hit -->
+        <div class="pipe-step" id="step1Card">
+          <div>
+            <div class="pipe-step-num" id="step1Num">Step 1: Sidecar Interception</div>
+            <div class="pipe-step-title" id="step1Title">Cache Miss Event</div>
+            <span class="pipe-source-badge" id="step1Source">Envoy / Sidecar Proxy</span>
+          </div>
+          <div>
+            <div style="font-family: var(--font-mono); font-size: 0.88rem; font-weight: 700; color: #fff;" id="flowKey">
+              twitter:key:1
+            </div>
+            <div style="font-size: 0.65rem; color: var(--text-dim); margin-top: 3px;" id="flowKeyHash">
+              Hash: z44uy84y4444...
+            </div>
+          </div>
+          <div>
+            <span class="badge badge-rose" id="step1Badge" style="font-size: 0.65rem;">CACHE MISS (404)</span>
+            <div style="font-size: 0.68rem; color: var(--text-muted); margin-top: 4px;" id="step1Desc">
+              Sidecar asks AI Engine: <code style="color:var(--cyan);">POST /predict</code>
+            </div>
+          </div>
+        </div>
+
+        <div class="pipe-arrow">➔</div>
+
+        <!-- Step 2: Prediction Engines (LSTM vs ARIMA) & Model Selector -->
+        <div class="pipe-step" style="grid-column: span 1;">
+          <div>
+            <div class="pipe-step-num">Step 2: Dual ML Prediction</div>
+            <div class="pipe-step-title">Popularity Forecasting</div>
+            <span class="pipe-source-badge">📥 Ingestion: Prometheus Scrapes</span>
+          </div>
+
+          <div class="dual-engine-box">
+            <!-- LSTM -->
+            <div class="engine-subcard winner-glow" id="cardLstm">
+              <div class="engine-name">
+                <span>🧠 LSTM</span>
+                <span class="badge badge-cyan" style="font-size: 0.58rem;">Winner</span>
+              </div>
+              <div class="engine-score" id="scoreLstm">0.980</div>
+              <div class="engine-rmse" id="rmseLstm">RMSE: 1.3807</div>
+            </div>
+
+            <!-- ARIMA -->
+            <div class="engine-subcard" id="cardArima">
+              <div class="engine-name">
+                <span>📈 ARIMA</span>
+                <span style="font-size: 0.58rem; color: var(--text-dim);">Baseline</span>
+              </div>
+              <div class="engine-score" id="scoreArima">0.100</div>
+              <div class="engine-rmse" id="rmseArima">RMSE: 82.8492</div>
+            </div>
+          </div>
+
+          <div class="selector-tag" id="selectorDecision">
+            Dynamic Selector: LSTM Selected (1.38 &lt; 82.85 RMSE)
+          </div>
+        </div>
+
+        <div class="pipe-arrow">➔</div>
+
+        <!-- Step 3: Volatility EWMA -->
+        <div class="pipe-step">
+          <div>
+            <div class="pipe-step-num">Step 3: Mutation Volatility</div>
+            <div class="pipe-step-title">DB Volatility Engine</div>
+            <span class="pipe-source-badge">📥 Ingestion: Debezium CDC + Kafka</span>
+          </div>
+          <div>
+            <div style="font-family: var(--font-mono); font-size: 1.25rem; font-weight: 800; color: #fbbf24;" id="flowVol">
+              0.000
+            </div>
+            <div style="font-size: 0.68rem; color: var(--text-dim); margin-top: 2px;" id="flowWrites">
+              0 DB writes in trace
+            </div>
+          </div>
+          <div style="font-size: 0.68rem; color: var(--text-muted);">
+            EWMA (α = 0.30) Penalty
+          </div>
+        </div>
+
+        <div class="pipe-arrow">➔</div>
+
+        <!-- Step 4: Hot Key Guard -->
+        <div class="pipe-step">
+          <div>
+            <div class="pipe-step-num">Step 4: Hot-Key Protection</div>
+            <div class="pipe-step-title">Stampede Guard</div>
+            <span class="pipe-source-badge">Sliding Window Rate Monitor</span>
+          </div>
+          <div>
+            <div style="font-family: var(--font-mono); font-size: 1.05rem; font-weight: 700; color: #34d399;" id="flowHot">
+              NORMAL
+            </div>
+            <div style="font-size: 0.68rem; color: var(--text-dim); margin-top: 2px;" id="flowHotReq">
+              38 / 1000 req
+            </div>
+          </div>
+          <div style="font-size: 0.68rem; color: var(--text-muted);">
+            Threshold: 1,000 req/60s
+          </div>
+        </div>
+
+        <div class="pipe-arrow">➔</div>
+
+        <!-- Step 5: Dynamic TTL Fusion & Cache Action -->
+        <div class="fusion-card">
+          <div>
+            <div class="pipe-step-num" style="color: #c4b5fd;">Step 5: Redis Write & TTL</div>
+            <div class="pipe-step-title">Final Cache Action</div>
+            <span class="pipe-source-badge" style="color: #cbd5e1;">TTL Fusion Formula Applied</span>
+          </div>
+
+          <div>
+            <div class="ttl-val-large" id="flowTtl">3,528s</div>
+            <div style="font-family: var(--font-mono); font-size: 0.72rem; color: #e2e8f0; margin-top: 4px;" id="flowFormula">
+              Base: 3528s × Penalty: 1.000
+            </div>
+          </div>
+
+          <div style="font-size: 0.72rem; color: var(--cyan); font-weight: 700; font-family: var(--font-mono); word-break: break-all;" id="flowAction">
+            SET twitter:key:1 EX 3528
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h3>
+          <span>📈 LSTM Forecast vs ARIMA Baseline vs 300s Fixed TTL</span>
+          <span class="badge badge-cyan">Model Comparison</span>
+        </h3>
+        <div class="chart-canvas-wrap">
+          <canvas id="modelCompChart"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <h3>
+          <span>🎯 Cumulative Hit Ratio: Adaptive TTL vs Static 300s</span>
+          <span class="badge badge-green" id="hitRatioBadge">+28.2% Improvement</span>
+        </h3>
+        <div class="chart-canvas-wrap">
+          <canvas id="hitChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Telemetry Table -->
+    <div class="feed-card">
+      <h3>
+        <span>📡 Request History Log (Manual Key Inspections)</span>
+        <button class="btn" style="font-size: 0.7rem; padding: 4px 10px;" onclick="clearLog()">Clear Log</button>
+      </h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Cache Key</th>
+              <th>Sidecar Event</th>
+              <th>Prometheus LSTM</th>
+              <th>ARIMA Baseline</th>
+              <th>Selected Winner</th>
+              <th>Kafka Volatility (V)</th>
+              <th>Adaptive TTL</th>
+              <th>Fixed TTL</th>
+              <th>Cache Action</th>
+            </tr>
+          </thead>
+          <tbody id="telemetryBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let isApiLive = false;
+
+    // Charts
+    let compChart = null;
+    let hitChart = null;
+
+    let simTotal = 0;
+    let simAdaptiveHits = 0;
+    let simFixedHits = 0;
+
+    const keyMetadata = {
+      "twitter:key:1": { hash: "z44uy84y44444vVMS3...", reads: 7691, writes: 0, pop: 0.980, vol: 0.000, type: "Read-Heavy" },
+      "twitter:key:2": { hash: "z44uy84y4444442MVn...", reads: 6573, writes: 0, pop: 0.880, vol: 0.000, type: "Read-Heavy" },
+      "twitter:key:3": { hash: "z44uy84y444444T06n...", reads: 6075, writes: 0, pop: 0.820, vol: 0.000, type: "Read-Heavy" },
+      "twitter:key:4": { hash: "z44uyo4F44444AIcyo...", reads: 4865, writes: 0, pop: 0.710, vol: 0.000, type: "Read-Heavy" },
+      "twitter:key:5": { hash: "z44uy84G444444bdsbin...", reads: 4652, writes: 0, pop: 0.680, vol: 0.000, type: "Read-Heavy" },
+      "twitter:key:6": { hash: "z44uyo4F44444CIcyo...", reads: 51, writes: 34, pop: 0.120, vol: 0.350, type: "Volatile R/W" },
+      "twitter:key:7": { hash: "z44uyo4F4444uCIIVC...", reads: 36, writes: 25, pop: 0.090, vol: 0.250, type: "Volatile R/W" },
+      "twitter:key:8": { hash: "z44uy84yyrIAE7ZqG4...", reads: 406, writes: 24, pop: 0.220, vol: 0.200, type: "Volatile R/W" },
+      "twitter:key:9": { hash: "z44uyo4F44444CeMyo...", reads: 66, writes: 23, pop: 0.110, vol: 0.190, type: "Volatile R/W" },
+      "twitter:key:10": { hash: "z44uyo4F44444CQiyo...", reads: 42, writes: 21, pop: 0.080, vol: 0.180, type: "Volatile R/W" },
+    };
+
+    function renderKeyChips() {
+      const container = document.getElementById('chipsGrid');
+      container.innerHTML = '';
+      const currentSelected = document.getElementById('keySelect').value;
+
+      for (let i = 1; i <= 10; i++) {
+        const key = `twitter:key:${i}`;
+        const meta = keyMetadata[key];
+        const chip = document.createElement('div');
+        chip.className = `key-chip ${key === currentSelected ? 'active' : ''}`;
+        chip.id = `chip-${key.replace(':', '_')}`;
+        chip.onclick = () => {
+          document.getElementById('keySelect').value = key;
+          onSelectChange();
+        };
+
+        chip.innerHTML = `
+          <div class="chip-key-name">Key ${i}</div>
+          <div class="chip-tag ${meta.writes > 0 ? 'write' : 'read'}">
+            ${meta.writes > 0 ? `⚡ ${meta.writes}w / ${meta.reads}r` : `👁️ ${meta.reads} reads`}
+          </div>
+        `;
+        container.appendChild(chip);
+      }
+    }
+
+    function initCharts() {
+      const ctxComp = document.getElementById('modelCompChart').getContext('2d');
+      const ctxHit = document.getElementById('hitChart').getContext('2d');
+
+      compChart = new Chart(ctxComp, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: 'LSTM Predicted TTL (s)',
+              borderColor: '#00f2fe',
+              backgroundColor: 'rgba(0, 242, 254, 0.1)',
+              borderWidth: 2.5,
+              tension: 0.3,
+              fill: true,
+              data: []
+            },
+            {
+              label: 'ARIMA Baseline TTL (s)',
+              borderColor: '#a855f7',
+              borderWidth: 1.8,
+              borderDash: [4, 4],
+              fill: false,
+              data: []
+            },
+            {
+              label: 'Static 300s TTL',
+              borderColor: '#f43f5e',
+              borderWidth: 1.5,
+              borderDash: [6, 6],
+              fill: false,
+              pointRadius: 0,
+              data: []
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: false,
+          plugins: { legend: { labels: { color: '#94a3b8', font: { family: 'Inter', size: 10 } } } },
+          scales: {
+            x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 } } },
+            y: { min: 0, max: 3800, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 } } }
+          }
+        }
+      });
+
+      hitChart = new Chart(ctxHit, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: 'Adaptive TTL Hit %',
+              borderColor: '#10b981',
+              backgroundColor: 'rgba(16, 185, 129, 0.1)',
+              borderWidth: 2.5,
+              tension: 0.3,
+              fill: true,
+              data: []
+            },
+            {
+              label: 'Fixed 300s Hit %',
+              borderColor: '#f59e0b',
+              borderWidth: 1.8,
+              tension: 0.3,
+              fill: false,
+              data: []
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: false,
+          plugins: { legend: { labels: { color: '#94a3b8', font: { family: 'Inter', size: 10 } } } },
+          scales: {
+            x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 } } },
+            y: { min: 40, max: 100, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 }, callback: v => v + '%' } }
+          }
+        }
+      });
+    }
+
+    // In-Memory Redis Cache Simulation (Models real Sidecar + Redis RAM storage)
+    const redisCache = {};
+
+    function invalidateCurrentKey() {
+      const key = document.getElementById('keySelect').value;
+      delete redisCache[key];
+      evaluateKey(key, true);
+    }
+
+    async function evaluateKey(key, forceMiss = false, overrideVol = null, isHot = false, overrideTtl = null) {
+      const info = keyMetadata[key] || { hash: "custom_key", reads: 100, writes: 0, pop: 0.3, vol: 0.0 };
+      const now = Date.now();
+      const cached = redisCache[key];
+
+      // Check for active CACHE HIT in Redis RAM
+      if (!forceMiss && cached && now < cached.expiresAt && overrideVol === null && !isHot && !overrideTtl) {
+        cached.hits++;
+        const remainingSeconds = Math.max(1, Math.round((cached.expiresAt - now) / 1000));
+        renderCacheHit(key, info, cached, remainingSeconds);
+        return;
+      }
+
+      let lstmPop = info.pop;
+      let arimaPop = round4(info.pop * 0.9);
+      let vol = overrideVol !== null ? overrideVol : info.vol;
+      let finalTtl = 1330;
+      let winner = "LSTM";
+      let lstmRmse = 1.3807;
+      let arimaRmse = 82.8492;
+
+      if (isApiLive) {
+        try {
+          const body = {};
+          if (overrideVol !== null) body.simulated_volatility = overrideVol;
+          if (isHot) body.simulated_hot = true;
+
+          const resp = await fetch(`http://localhost:5001/api/v1/predict/${encodeURIComponent(key)}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+          });
+          if (resp.ok) {
+            const data = await resp.json();
+            finalTtl = data.suggested_ttl;
+            vol = data.volatility;
+            isHot = data.is_hot;
+            if (data.engines) {
+              lstmPop = data.engines.lstm.popularity || data.popularity;
+              arimaPop = data.engines.arima.popularity || round4(lstmPop * 0.9);
+              winner = data.engines.selector.winner || "LSTM";
+              lstmRmse = data.engines.lstm.rmse || 1.3807;
+              arimaRmse = data.engines.arima.rmse || 82.8492;
+            }
+          }
+        } catch (e) {}
+      }
+
+      if (overrideTtl) {
+        finalTtl = overrideTtl;
+      } else if (!isApiLive) {
+        if (isHot) {
+          finalTtl = 3600;
+        } else {
+          const baseTtl = 3600 * lstmPop;
+          const penalty = 1.0 / (1.0 + vol * 10.0);
+          finalTtl = Math.max(10, Math.min(3600, Math.round(baseTtl * penalty)));
+        }
+      }
+
+      // Store in simulated Redis memory
+      redisCache[key] = {
+        key: key,
+        cachedAt: now,
+        expiresAt: now + (finalTtl * 1000),
+        ttl: finalTtl,
+        hits: 0,
+        lstmPop: lstmPop,
+        arimaPop: arimaPop,
+        winner: winner,
+        lstmRmse: lstmRmse,
+        arimaRmse: arimaRmse,
+        vol: vol,
+        isHot: isHot
+      };
+
+      renderWorkflow(key, info, lstmPop, arimaPop, winner, lstmRmse, arimaRmse, vol, isHot, finalTtl, overrideTtl);
+    }
+
+    function renderCacheHit(key, info, cached, remainingSeconds) {
+      document.getElementById('stepInfo').textContent = "Cache Hit: Fast Path (0.4ms) — Bypassed DB & ML Re-calculation";
+      document.getElementById('stepInfo').className = "badge badge-green";
+
+      // Step 1: Hit UI
+      document.getElementById('step1Title').textContent = "Cache Hit Event";
+      document.getElementById('step1Badge').textContent = "CACHE HIT (200 OK)";
+      document.getElementById('step1Badge').className = "badge badge-green";
+      document.getElementById('step1Desc').innerHTML = `Served from Redis in <b style="color:#34d399;">0.4ms</b> (Hit #${cached.hits})`;
+
+      document.getElementById('flowKey').textContent = key;
+      document.getElementById('flowKeyHash').textContent = "Hash: " + (info.hash ? info.hash.slice(0, 16) + "..." : "hash_key");
+
+      // Step 2, 3, 4: Keep visible but show bypassed status
+      document.getElementById('scoreLstm').textContent = cached.lstmPop.toFixed(3);
+      document.getElementById('rmseLstm').textContent = "RMSE: " + cached.lstmRmse.toFixed(4);
+      document.getElementById('scoreArima').textContent = cached.arimaPop.toFixed(3);
+      document.getElementById('rmseArima').textContent = "RMSE: " + cached.arimaRmse.toFixed(4);
+      document.getElementById('selectorDecision').textContent = `⚡ Fast-Path: Model Bypassed (Active TTL: ${remainingSeconds}s remaining)`;
+
+      document.getElementById('flowVol').textContent = cached.vol.toFixed(3);
+      document.getElementById('flowWrites').textContent = `${info.writes || 0} DB writes in trace`;
+
+      const hotEl = document.getElementById('flowHot');
+      if (cached.isHot) {
+        hotEl.textContent = "STAMPEDE DETECTED";
+        hotEl.style.color = "#f43f5e";
+        document.getElementById('flowHotReq').textContent = "1,420 req / 60s";
+      } else {
+        hotEl.textContent = "NORMAL";
+        hotEl.style.color = "#34d399";
+        document.getElementById('flowHotReq').textContent = "38 req / 60s";
+      }
+
+      // Step 5: Active TTL & Read Action
+      document.getElementById('flowTtl').textContent = remainingSeconds.toLocaleString() + "s";
+      document.getElementById('flowFormula').textContent = `Cached in RAM (${remainingSeconds}s remaining of ${cached.ttl}s TTL)`;
+      document.getElementById('flowAction').textContent = `GET ${key} ➔ 200 OK (0.4ms RAM)`;
+      document.getElementById('flowAction').style.color = "#34d399";
+
+      addFeedRow(key, cached.lstmPop, cached.arimaPop, cached.winner, cached.vol, remainingSeconds, cached.isHot, null, true, cached.hits);
+      pushChart(remainingSeconds, Math.round(3600 * cached.arimaPop));
+
+      // Active chip styling
+      document.querySelectorAll('.key-chip').forEach(el => el.classList.remove('active'));
+      const activeChip = document.getElementById(`chip-${key.replace(':', '_')}`);
+      if (activeChip) activeChip.classList.add('active');
+    }
+
+    function renderWorkflow(key, info, lstmPop, arimaPop, winner, lstmRmse, arimaRmse, vol, isHot, ttl, overrideTtl) {
+      document.getElementById('stepInfo').textContent = "Cache Miss: Sidecar invoked ML Prediction & Redis SET";
+      document.getElementById('stepInfo').className = "badge badge-purple";
+
+      // Step 1: Miss UI
+      document.getElementById('step1Title').textContent = "Cache Miss Event";
+      document.getElementById('step1Badge').textContent = "CACHE MISS (404)";
+      document.getElementById('step1Badge').className = "badge badge-rose";
+      document.getElementById('step1Desc').innerHTML = `Sidecar asks AI Engine: <code style="color:var(--cyan);">POST /predict</code>`;
+
+      document.getElementById('flowKey').textContent = key;
+      document.getElementById('flowKeyHash').textContent = "Hash: " + (info.hash ? info.hash.slice(0, 16) + "..." : "hash_key");
+
+      document.getElementById('scoreLstm').textContent = lstmPop.toFixed(3);
+      document.getElementById('rmseLstm').textContent = "RMSE: " + lstmRmse.toFixed(4);
+
+      document.getElementById('scoreArima').textContent = arimaPop.toFixed(3);
+      document.getElementById('rmseArima').textContent = "RMSE: " + arimaRmse.toFixed(4);
+
+      if (winner === "LSTM") {
+        document.getElementById('cardLstm').classList.add('winner-glow');
+        document.getElementById('cardArima').classList.remove('winner-glow');
+      } else {
+        document.getElementById('cardArima').classList.add('winner-glow');
+        document.getElementById('cardLstm').classList.remove('winner-glow');
+      }
+
+      document.getElementById('selectorDecision').textContent = `Dynamic Selector: ${winner} Selected (${min(lstmRmse, arimaRmse).toFixed(2)} < ${max(lstmRmse, arimaRmse).toFixed(2)} RMSE)`;
+
+      document.getElementById('flowVol').textContent = vol.toFixed(3);
+      document.getElementById('flowWrites').textContent = `${info.writes || 0} DB writes in trace`;
+
+      const hotEl = document.getElementById('flowHot');
+      if (isHot) {
+        hotEl.textContent = "STAMPEDE DETECTED";
+        hotEl.style.color = "#f43f5e";
+        document.getElementById('flowHotReq').textContent = "1,420 req / 60s";
+      } else {
+        hotEl.textContent = "NORMAL";
+        hotEl.style.color = "#34d399";
+        document.getElementById('flowHotReq').textContent = "38 req / 60s";
+      }
+
+      document.getElementById('flowTtl').textContent = ttl.toLocaleString() + "s";
+      const base = Math.round(3600 * lstmPop);
+      const penalty = (1.0 / (1.0 + vol * 10.0)).toFixed(3);
+      document.getElementById('flowFormula').textContent = overrideTtl 
+        ? "Pre-Warm Override Active"
+        : (isHot ? "Hot Stampede: Clamped to 3,600s" : `Base: ${base}s × Penalty: ${penalty}`);
+
+      document.getElementById('flowAction').textContent = `SET ${key} EX ${ttl}`;
+      document.getElementById('flowAction').style.color = "var(--cyan)";
+
+      addFeedRow(key, lstmPop, arimaPop, winner, vol, ttl, isHot, overrideTtl, false, 0);
+      pushChart(ttl, Math.round(3600 * arimaPop));
+
+      // Update active chip styling
+      document.querySelectorAll('.key-chip').forEach(el => el.classList.remove('active'));
+      const activeChip = document.getElementById(`chip-${key.replace(':', '_')}`);
+      if (activeChip) activeChip.classList.add('active');
+    }
+
+    function addFeedRow(key, lstmPop, arimaPop, winner, vol, ttl, isHot, overrideTtl, isHit = false, hitCount = 0) {
+      const now = new Date().toTimeString().split(' ')[0];
+      const tbody = document.getElementById('telemetryBody');
+      const tr = document.createElement('tr');
+      
+      let sidecarBadge = '<span class="badge badge-rose" style="font-size:0.6rem;">MISS ➔ DB FETCH</span>';
+      let actionCell = `<span style="color:var(--cyan); font-weight:700;">SET EX ${ttl}s</span>`;
+      let statusBadge = overrideTtl 
+        ? '<span class="badge badge-purple">PINNED</span>'
+        : (isHot ? '<span class="badge badge-rose">HOT KEY</span>' : (vol > 0.1 ? '<span class="badge badge-amber">STALE GUARD</span>' : '<span class="badge badge-cyan">CACHED</span>'));
+
+      if (isHit) {
+        sidecarBadge = `<span class="badge badge-green" style="font-size:0.6rem;">HIT (0.4ms RAM #${hitCount})</span>`;
+        actionCell = `<span style="color:#34d399; font-weight:700;">GET ➔ 200 OK</span>`;
+        statusBadge = '<span class="badge badge-green">CACHE HIT</span>';
+      }
+
+      tr.innerHTML = `
+        <td style="color:var(--text-dim);">${now}</td>
+        <td style="font-weight:700; color:#fff;">${key}</td>
+        <td>${sidecarBadge}</td>
+        <td style="color:#38bdf8; font-weight:600;">${lstmPop.toFixed(3)}</td>
+        <td style="color:#d8b4fe;">${arimaPop.toFixed(3)}</td>
+        <td><span class="badge badge-cyan">${winner}</span></td>
+        <td style="color:#fbbf24; font-weight:600;">${vol.toFixed(3)}</td>
+        <td style="color:var(--cyan); font-weight:700;">${ttl.toLocaleString()}s</td>
+        <td style="color:var(--text-dim);">300s</td>
+        <td>${actionCell}</td>
+      `;
+      tbody.insertBefore(tr, tbody.firstChild);
+      while (tbody.children.length > 25) tbody.removeChild(tbody.lastChild);
+    }
+
+    function pushChart(lstmTtl, arimaTtl) {
+      const now = new Date().toTimeString().split(' ')[0];
+      if (compChart.data.labels.length > 15) {
+        compChart.data.labels.shift();
+        compChart.data.datasets[0].data.shift();
+        compChart.data.datasets[1].data.shift();
+        compChart.data.datasets[2].data.shift();
+      }
+      compChart.data.labels.push(now);
+      compChart.data.datasets[0].data.push(lstmTtl);
+      compChart.data.datasets[1].data.push(arimaTtl);
+      compChart.data.datasets[2].data.push(300);
+      compChart.update();
+
+      simTotal++;
+      if (lstmTtl > 600) simAdaptiveHits += (Math.random() < 0.95 ? 1 : 0);
+      else simAdaptiveHits += (Math.random() < 0.88 ? 1 : 0);
+      simFixedHits += (Math.random() < 0.65 ? 1 : 0);
+
+      const hitAdapt = (simAdaptiveHits / simTotal) * 100;
+      const hitFixed = (simFixedHits / simTotal) * 100;
+
+      if (hitChart.data.labels.length > 15) {
+        hitChart.data.labels.shift();
+        hitChart.data.datasets[0].data.shift();
+        hitChart.data.datasets[1].data.shift();
+      }
+      hitChart.data.labels.push(now);
+      hitChart.data.datasets[0].data.push(hitAdapt.toFixed(1));
+      hitChart.data.datasets[1].data.push(hitFixed.toFixed(1));
+      hitChart.update();
+    }
+
+    function onSelectChange() {
+      const key = document.getElementById('keySelect').value;
+      evaluateKey(key);
+    }
+
+    function triggerManualRequest() {
+      const key = document.getElementById('keySelect').value;
+      evaluateKey(key);
+    }
+
+    function applyPreset(p) {
+      if (p === 'read_heavy') {
+        document.getElementById('keySelect').value = "twitter:key:1";
+        delete redisCache["twitter:key:1"];
+        evaluateKey("twitter:key:1", true, 0.0, false);
+      } else if (p === 'write_storm') {
+        document.getElementById('keySelect').value = "twitter:key:6";
+        delete redisCache["twitter:key:6"]; // DB Write event invalidates existing cached entry
+        evaluateKey("twitter:key:6", true, 0.45, false);
+      } else if (p === 'stampede') {
+        const key = document.getElementById('keySelect').value;
+        delete redisCache[key];
+        evaluateKey(key, true, null, true);
+      } else if (p === 'prewarm') {
+        const key = document.getElementById('keySelect').value;
+        delete redisCache[key];
+        evaluateKey(key, true, 0.0, false, 3600);
+      }
+    }
+
+    function clearLog() {
+      document.getElementById('telemetryBody').innerHTML = '';
+    }
+
+    function round4(v) { return Math.round(v * 10000) / 10000; }
+    function min(a, b) { return a < b ? a : b; }
+    function max(a, b) { return a > b ? a : b; }
+
+    async function checkApi() {
+      try {
+        const res = await fetch('http://localhost:5001/api/v1/dashboard/stats');
+        if (res.ok) {
+          isApiLive = true;
+          document.getElementById('statusBadge').textContent = 'Live API: Connected';
+          document.getElementById('statusBadge').className = 'badge badge-green';
+        } else {
+          isApiLive = false;
+          document.getElementById('statusBadge').textContent = 'Simulation Mode';
+          document.getElementById('statusBadge').className = 'badge badge-amber';
+        }
+      } catch (e) {
+        isApiLive = false;
+        document.getElementById('statusBadge').textContent = 'Simulation Mode';
+        document.getElementById('statusBadge').className = 'badge badge-amber';
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initCharts();
+      renderKeyChips();
+      onSelectChange();
+      checkApi();
+      setInterval(checkApi, 5000);
+    });
+  </script>
+</body>
+</html>

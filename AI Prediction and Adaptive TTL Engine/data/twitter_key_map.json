@@ -1,0 +1,62 @@
+{
+  "twitter:key:1": {
+    "raw_key": "z44uy84y44444vVMS3Cn44M4444y444=",
+    "reads": 7691,
+    "writes": 0,
+    "type": "read_heavy"
+  },
+  "twitter:key:2": {
+    "raw_key": "z44uy84y4444442MVnNF44i444444szPu484u8444uvF44Cgighreumo48d4y84444wIVo44",
+    "reads": 6573,
+    "writes": 0,
+    "type": "read_heavy"
+  },
+  "twitter:key:3": {
+    "raw_key": "z44uy84y444444T06nGF44i444444Icfao84u8444uvF44CghFz0aYgo4id4y84444wIVo44",
+    "reads": 6075,
+    "writes": 0,
+    "type": "read_heavy"
+  },
+  "twitter:key:4": {
+    "raw_key": "z44uyo4F44444AIcyo4f4444nzvtHcRJvPiXTPCL3cMLvbu8MJMLTJVOvqSXMPEavtMpy44944444i44",
+    "reads": 4865,
+    "writes": 0,
+    "type": "read_heavy"
+  },
+  "twitter:key:5": {
+    "raw_key": "z44uy84G444444bdsbin44M4444y444=",
+    "reads": 4652,
+    "writes": 0,
+    "type": "read_heavy"
+  },
+  "twitter:key:6": {
+    "raw_key": "z44uyo4F44444CIcyo4f4444nzCovzHCHbgC3cHJvtg9HbG7vJV0vtuA3PY93JveHJG5y44944444844",
+    "reads": 51,
+    "writes": 34,
+    "type": "volatile_rw"
+  },
+  "twitter:key:7": {
+    "raw_key": "z44uyo4F4444uCIIVCkigid4Uo444yuJvPG0HPwAvziOTqGOMPRAMJn5vtirHzioHzioTziOM884n84444n444==",
+    "reads": 36,
+    "writes": 25,
+    "type": "volatile_rw"
+  },
+  "twitter:key:8": {
+    "raw_key": "z44uy84yyrIAE7ZqG44n44M4444Fyo4F4444uGhcxVG444==",
+    "reads": 406,
+    "writes": 24,
+    "type": "volatile_rw"
+  },
+  "twitter:key:9": {
+    "raw_key": "z44uyo4F44444CeMyo4f4444nzY9vPGoHcn53zIA3cgYH5V73P873c87MJhCMcCr3qney44944444844",
+    "reads": 66,
+    "writes": 23,
+    "type": "volatile_rw"
+  },
+  "twitter:key:10": {
+    "raw_key": "z44uyo4F44444CQiyo4f4444nzv7HJGLTcM53zg93PgCvtRYHPYYvz87vtIYMJv7MPuY444=",
+    "reads": 42,
+    "writes": 21,
+    "type": "volatile_rw"
+  }
+}
