@@ -1,0 +1,1 @@
+serving metrics on http://localhost:8000/metrics | trace cluster52.000-002_k1 (twitter_real) | model real_cluster52.000-002_k1_dqn_cap0.01_s0.npz (trained decisions 300000) | speed x30 | replay length 3496 simulated s = 117 s real

@@ -64,7 +64,7 @@ def key_hash_bucket(key: str) -> int:
     return zlib.crc32(key.encode("utf-8")) % 100
 
 
-def parse_trace(path: str | Path, *, t_start: float | None = None, t_end: float | None = None,
+def parse_trace(path: "str | Path | list[str | Path]", *, t_start: float | None = None, t_end: float | None = None,
                 max_rows: int | None = None, key_hash_pct: int | None = None,
                 max_bad_fraction: float = 0.001, name: str | None = None,
                 ) -> tuple[Trace, ParseStats]:
@@ -84,57 +84,66 @@ def parse_trace(path: str | Path, *, t_start: float | None = None, t_end: float 
     last_ts = -np.inf
     done = False
 
-    with _open_text(path) as fh:
-        while not done:
-            block = fh.readlines(_BLOCK * 64)           # ~size hint in bytes, bounded memory
-            if not block:
+    paths = [path] if isinstance(path, (str, Path)) else list(path)      # several consecutive parts = one stream
+
+    def _blocks():
+        for p_ in paths:
+            with _open_text(p_) as fh:
+                while True:
+                    blk = fh.readlines(_BLOCK * 64)           # ~size hint in bytes, bounded memory
+                    if not blk:
+                        break
+                    yield blk
+
+    for block in _blocks():
+        if done:
+            break
+        for line in block:
+            st.rows_read += 1
+            parts = line.rstrip("\r\n").split(",")
+            if len(parts) != N_FIELDS:
+                st.rows_bad_fieldcount += 1
+                continue
+            opcode = OP_CODE.get(parts[5])
+            if opcode is None:
+                st.rows_unknown_op += 1
+                continue
+            try:
+                t = float(parts[0]); ksz = int(parts[2]); vsz = int(parts[3])
+                cli = int(parts[4]); ttl = int(parts[6])
+            except ValueError:
+                st.rows_bad_value += 1
+                continue
+            if t_end is not None and t >= t_end:
+                st.stopped_early_at_ts = t
+                done = True
                 break
-            for line in block:
-                st.rows_read += 1
-                parts = line.rstrip("\r\n").split(",")
-                if len(parts) != N_FIELDS:
-                    st.rows_bad_fieldcount += 1
-                    continue
-                opcode = OP_CODE.get(parts[5])
-                if opcode is None:
-                    st.rows_unknown_op += 1
-                    continue
-                try:
-                    t = float(parts[0]); ksz = int(parts[2]); vsz = int(parts[3])
-                    cli = int(parts[4]); ttl = int(parts[6])
-                except ValueError:
-                    st.rows_bad_value += 1
-                    continue
-                if t_end is not None and t >= t_end:
-                    st.stopped_early_at_ts = t
-                    done = True
-                    break
-                if t_start is not None and t < t_start:
-                    continue
-                skey = parts[1]
-                if key_hash_pct is not None and key_hash_bucket(skey) >= key_hash_pct:
-                    st.rows_dropped_by_key_sampling += 1
-                    continue
-                kid = intern.get(skey)
-                if kid is None:
-                    kid = len(intern)
-                    intern[skey] = kid
-                raw_size = ksz + vsz
-                if vsz > 0:
-                    size = max(raw_size, 1)
-                    last_size[kid] = size
-                else:                                   # causal forward fill
-                    size = last_size.get(kid, DEFAULT_OBJECT_SIZE)
-                if t < last_ts:
-                    st.rows_out_of_order += 1
-                last_ts = max(last_ts, t)
-                ts_l.append(t); key_l.append(kid); size_l.append(size)
-                cli_l.append(cli); op_l.append(opcode)
-                ttl_l.append(ttl if opcode >= OP_CODE["set"] else 0)
-                st.rows_kept += 1
-                if max_rows is not None and st.rows_kept >= max_rows:
-                    done = True
-                    break
+            if t_start is not None and t < t_start:
+                continue
+            skey = parts[1]
+            if key_hash_pct is not None and key_hash_bucket(skey) >= key_hash_pct:
+                st.rows_dropped_by_key_sampling += 1
+                continue
+            kid = intern.get(skey)
+            if kid is None:
+                kid = len(intern)
+                intern[skey] = kid
+            raw_size = ksz + vsz
+            if vsz > 0:
+                size = max(raw_size, 1)
+                last_size[kid] = size
+            else:                                   # causal forward fill
+                size = last_size.get(kid, DEFAULT_OBJECT_SIZE)
+            if t < last_ts:
+                st.rows_out_of_order += 1
+            last_ts = max(last_ts, t)
+            ts_l.append(t); key_l.append(kid); size_l.append(size)
+            cli_l.append(cli); op_l.append(opcode)
+            ttl_l.append(ttl if opcode >= OP_CODE["set"] else 0)
+            st.rows_kept += 1
+            if max_rows is not None and st.rows_kept >= max_rows:
+                done = True
+                break
 
     if st.rows_read and st.bad_fraction > max_bad_fraction:
         raise ValueError(
@@ -153,7 +162,7 @@ def parse_trace(path: str | Path, *, t_start: float | None = None, t_end: float 
                size=np.asarray(size_l, dtype=np.int32), client=np.asarray(cli_l, dtype=np.int32),
                op=np.asarray(op_l, dtype=np.int8), ttl=np.asarray(ttl_l, dtype=np.int32),
                n_keys=max(len(intern), 1), source="twitter_real",
-               name=name or Path(path).name,
+               name=name or Path(paths[0]).name,
                meta={"key_sample_frac": (key_hash_pct / 100.0) if key_hash_pct else 1.0,
                      "t_start": t_start, "t_end": t_end, "parse": st})
     if len(tr):

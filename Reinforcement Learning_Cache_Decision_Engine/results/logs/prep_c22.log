@@ -1,0 +1,3 @@
+sha256 cluster22.000.zst edc4daa13f369771fdb7a4b73c6ab89137452473235fef6fee553fe246215047 (1s)
+parse {'rows_read': 84067931, 'rows_kept': 1662198, 'rows_bad_fieldcount': 0, 'rows_bad_value': 0, 'rows_unknown_op': 0, 'rows_out_of_order': 15, 'rows_dropped_by_key_sampling': 82405733, 'stopped_early_at_ts': None} (156s)
+saved data/processed/cluster22_000_k2.npz 12.686953 MB; {"rows": 1662198, "span_s": 36029.91576086957, "unique_keys": 542602, "ops": {"get": 1243268, "set": 155577, "delete": 246, "incr": 263107}, "write_fraction": 0.25203375289827085, "keys_written": 154340, "writes_per_written_key_median": 2.0, "writes_per_written_key_max": 7738, "write_ttl_top": [[0, 263353], [86400, 131314], [3600, 16958], [1800, 5584], [10800, 1700]], "footprint_bytes": 408995449}

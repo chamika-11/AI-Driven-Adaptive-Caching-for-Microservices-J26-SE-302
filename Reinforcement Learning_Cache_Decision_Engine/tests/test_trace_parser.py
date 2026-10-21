@@ -181,3 +181,16 @@ def test_ttl_label_forward_fill_is_causal():
         p = os.path.join(d, "t.csv"); open(p, "w").write(rows)
         tr, _ = P.parse_trace(p)
     assert P.forward_fill_ttl_label(tr).tolist() == [0, 0, 300, 0, 300, 60]
+
+
+def test_parse_several_consecutive_parts_as_one_stream(tmp_path):
+    from rlcache.trace.parser import parse_trace
+    a = tmp_path / "p0.txt"
+    b = tmp_path / "p1.txt"
+    a.write_text("0,k1,2,10,1,get,0\n1,k2,2,10,1,set,60\n", encoding="utf-8")
+    b.write_text("1,k1,2,10,1,get,0\n2,k3,2,10,1,get,0\n3,k2,2,0,1,get,0\n", encoding="utf-8")
+    tr, st = parse_trace([a, b])
+    assert len(tr) == 5 and st.rows_read == 5 and tr.n_keys == 3
+    assert tr.key.tolist() == [0, 1, 0, 2, 1]                      # key ids are shared across the parts
+    one, _ = parse_trace(a)
+    assert len(one) == 2

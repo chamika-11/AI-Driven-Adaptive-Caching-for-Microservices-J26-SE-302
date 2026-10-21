@@ -93,9 +93,11 @@ def _pct(x: np.ndarray, q: float) -> float:
 
 def _base_row(ctx: EvalContext, spec: Spec, split: str) -> dict:
     return {
-        "run_id": f"{spec.family}|{spec.name}|{ctx.arm}|cap{ctx.capacity_frac}|{split}|s{ctx.seed}",
+        "run_id": ("" if ctx.trace.source == "synthetic" else f"{ctx.trace_name}|")
+        + f"{spec.family}|{spec.name}|{ctx.arm}|cap{ctx.capacity_frac}|{split}|s{ctx.seed}",
         "config_digest": ctx.cfg.digest(), "git_commit": "nogit", "seed": ctx.seed,
-        "data_source": "synthetic", "trace_name": ctx.trace_name, "split": split,
+        "data_source": ctx.trace.source if ctx.trace.source in ("synthetic", "twitter_real") else "synthetic",
+        "trace_name": ctx.trace_name, "split": split,
         "policy": spec.name, "policy_class": spec.policy_class, "family": spec.family,
         "capacity_frac": ctx.capacity_frac, "l1_frac": ctx.cfg.cache.l1_fraction_of_l2,
         "staleness_mode": ctx.arm, "w_stale": ctx.cfg.reward.w_stale, "predictor_accuracy": 1.0,
