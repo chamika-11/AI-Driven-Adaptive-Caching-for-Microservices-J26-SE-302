@@ -176,6 +176,7 @@ _reload_lock: threading.Lock = threading.Lock()
 # Per-key TTL overrides written by POST /api/v1/prewarm/<key>.
 # Structure: {cache_key: {"ttl": int, "expires_at": float (epoch)}}
 _ttl_overrides: dict[str, dict] = {}
+_orchestration_events: list[dict] = []
 
 # Feature columns — must match train_models.py (global mode includes key_label)
 _FEATURE_COLS = ["request_count", "hour_sin", "hour_cos", "dow_sin", "dow_cos", "key_label"]
@@ -606,6 +607,152 @@ def prewarm_key(cache_key: str):
     }), 200
 
 
+@app.route("/api/v1/events/orchestration", methods=["POST"])
+@app.route("/api/v1/orchestration/event", methods=["POST"])
+def ingest_orchestration_event():
+    """
+    Ingest upstream event reports from the Event-Driven Orchestration Module.
+    
+    1. Extracts prewarmWindowMinutes (default 30m) and converts to pre-warm TTL seconds.
+    2. Identifies affected GET endpoints and applies TTL pins + hot key alerts.
+    3. Identifies affected write endpoints (POST, PUT, DELETE) and primes VolatilityEngine.
+    4. Logs event context and stores for dashboard telemetry.
+    """
+    data = request.get_json(silent=True) or {}
+    
+    report_id = data.get("reportId", f"rep_{int(time.time())}")
+    event_id = data.get("eventId") or data.get("eventContext", {}).get("eventId", "unknown_event")
+    event_name = data.get("eventName") or data.get("eventContext", {}).get("eventName", "unnamed_event")
+    
+    # Pre-warm window
+    window_min = data.get("prewarmWindowMinutes")
+    if window_min is None:
+        window_min = data.get("eventContext", {}).get("prewarmWindowMinutes", 30)
+    try:
+        window_min = float(window_min)
+    except (TypeError, ValueError):
+        window_min = 30.0
+        
+    ttl_seconds = max(cfg.MIN_TTL, min(cfg.MAX_TTL, int(window_min * 60)))
+    
+    # Expected load from featureVector if available
+    feat_vec = data.get("featureVector", {})
+    event_feats = feat_vec.get("eventFeatures", {})
+    expected_load = event_feats.get("expectedLoad", "HIGH")
+    
+    pinned_read_keys = []
+    monitored_write_keys = []
+    
+    affected_endpoints = data.get("affectedEndpoints", [])
+    for ep in affected_endpoints:
+        method = (ep.get("httpMethod") or "GET").upper()
+        service = ep.get("serviceName") or "default"
+        path = ep.get("path") or ""
+        relevance = ep.get("relevance", "MEDIUM")
+        
+        # Primary cache keys
+        key_full = f"{service}:{path}"
+        key_short = path
+        
+        if method == "GET":
+            # Set pre-warm TTL override
+            expires_at = time.time() + ttl_seconds
+            _ttl_overrides[key_full] = {
+                "ttl": ttl_seconds,
+                "expires_at": expires_at,
+                "event_id": event_id,
+                "event_name": event_name,
+            }
+            if key_short:
+                _ttl_overrides[key_short] = {
+                    "ttl": ttl_seconds,
+                    "expires_at": expires_at,
+                    "event_id": event_id,
+                    "event_name": event_name,
+                }
+            
+            # Pre-flag as hot key in sliding window detector
+            record_count = (cfg.HOTKEY_THRESHOLD + 1) if expected_load == "HIGH" else 2
+            for _ in range(record_count):
+                _hotkey_detector.record_request(key_full)
+                if key_short:
+                    _hotkey_detector.record_request(key_short)
+            
+            pinned_read_keys.append({
+                "key": key_full,
+                "path": path,
+                "method": method,
+                "service": service,
+                "ttl_override_seconds": ttl_seconds,
+                "relevance": relevance,
+                "is_hot_flagged": True
+            })
+        else:
+            # Write operations: mark volatility in VolatilityEngine
+            _volatility_engine.record_mutation(key_full, weight=0.3)
+            if key_short:
+                _volatility_engine.record_mutation(key_short, weight=0.3)
+            monitored_write_keys.append({
+                "key": key_full,
+                "path": path,
+                "method": method,
+                "service": service,
+                "relevance": relevance,
+                "volatility_primed": True
+            })
+            
+    event_record = {
+        "report_id": report_id,
+        "event_id": event_id,
+        "event_name": event_name,
+        "received_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "expected_load": expected_load,
+        "prewarm_window_minutes": window_min,
+        "prewarm_ttl_seconds": ttl_seconds,
+        "pinned_read_count": len(pinned_read_keys),
+        "monitored_write_count": len(monitored_write_keys),
+        "pinned_read_keys": pinned_read_keys,
+        "monitored_write_keys": monitored_write_keys,
+        "status": "ACTIVE_PREWARM",
+    }
+    
+    with _telemetry_lock:
+        _orchestration_events.append(event_record)
+        if len(_orchestration_events) > 25:
+            _orchestration_events.pop(0)
+            
+    logger.info(
+        "Ingested Orchestration Event '%s' (ID: %s): pinned %d read keys (%ds TTL), primed %d write keys",
+        event_name, event_id, len(pinned_read_keys), ttl_seconds, len(monitored_write_keys)
+    )
+    
+    return jsonify({
+        "status": "ACCEPTED",
+        "processing_status": "READY",
+        "readiness_status": "CONSUMED_AND_APPLIED",
+        "report_id": report_id,
+        "event_id": event_id,
+        "event_name": event_name,
+        "prewarm_window_minutes": window_min,
+        "prewarm_ttl_seconds": ttl_seconds,
+        "expected_load": expected_load,
+        "pinned_read_endpoints": pinned_read_keys,
+        "monitored_write_endpoints": monitored_write_keys,
+        "summary": f"Pre-warmed {len(pinned_read_keys)} GET endpoint(s) with {ttl_seconds}s TTL pin and primed {len(monitored_write_keys)} write endpoint(s) for volatility tracking."
+    }), 200
+
+
+@app.route("/api/v1/events/orchestration", methods=["GET"])
+@app.route("/api/v1/orchestration/events", methods=["GET"])
+def list_orchestration_events():
+    """List recent events received from the Event-Driven Orchestration Module."""
+    with _telemetry_lock:
+        return jsonify({
+            "total_events": len(_orchestration_events),
+            "events": list(reversed(_orchestration_events))
+        }), 200
+
+
 @app.route("/api/v1/dashboard/stats", methods=["GET"])
 def dashboard_stats():
     """
@@ -665,6 +812,10 @@ def dashboard_stats():
             "ewma_alpha": cfg.EWMA_ALPHA,
         },
         "cdc_telemetry": _cdc_consumer.status(),
+        "orchestration_telemetry": {
+            "total_events": len(_orchestration_events),
+            "recent_events": list(reversed(_orchestration_events))[:5]
+        },
         "prometheus_telemetry": {
             "endpoint": "/metrics",
             "scrape_port": cfg.PORT,
