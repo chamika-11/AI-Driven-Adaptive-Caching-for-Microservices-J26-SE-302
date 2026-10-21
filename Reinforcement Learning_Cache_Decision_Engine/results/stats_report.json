@@ -1,0 +1,179 @@
+{
+ "family": "{dqn:main, dqn:bandit, dqn:vanilla, tabq:qbin, tabq:bandit} x capacities (0.01, 0.05, 0.25) vs place_size:p25, paired dU, test slice, seeds 0-9",
+ "tests": [
+  {
+   "agent": "dqn:main",
+   "cap": 0.01,
+   "mean_dU": -0.002018605115177896,
+   "dz": -0.07268302173455561,
+   "p": 0.431640625,
+   "p_holm": 1.0
+  },
+  {
+   "agent": "dqn:main",
+   "cap": 0.05,
+   "mean_dU": -0.07692963351360474,
+   "dz": -1.0734369384841198,
+   "p": 0.001953125,
+   "p_holm": 0.029296875
+  },
+  {
+   "agent": "dqn:main",
+   "cap": 0.25,
+   "mean_dU": -0.07584289774700999,
+   "dz": -1.2928987847869642,
+   "p": 0.001953125,
+   "p_holm": 0.029296875
+  },
+  {
+   "agent": "dqn:bandit",
+   "cap": 0.01,
+   "mean_dU": -0.013971855829690183,
+   "dz": -0.5107375728305946,
+   "p": 0.16015625,
+   "p_holm": 0.654296875
+  },
+  {
+   "agent": "dqn:bandit",
+   "cap": 0.05,
+   "mean_dU": -0.037598244238229085,
+   "dz": -1.2856709190368938,
+   "p": 0.00390625,
+   "p_holm": 0.03515625
+  },
+  {
+   "agent": "dqn:bandit",
+   "cap": 0.25,
+   "mean_dU": -0.033012781425845274,
+   "dz": -0.6760077014908421,
+   "p": 0.01953125,
+   "p_holm": 0.13671875
+  },
+  {
+   "agent": "dqn:vanilla",
+   "cap": 0.01,
+   "mean_dU": -0.019799659775039315,
+   "dz": -0.8382881286317437,
+   "p": 0.02734375,
+   "p_holm": 0.1640625
+  },
+  {
+   "agent": "dqn:vanilla",
+   "cap": 0.05,
+   "mean_dU": -0.08504871094339717,
+   "dz": -1.0306432086461503,
+   "p": 0.001953125,
+   "p_holm": 0.029296875
+  },
+  {
+   "agent": "dqn:vanilla",
+   "cap": 0.25,
+   "mean_dU": -0.07972660152093305,
+   "dz": -1.2891088946681104,
+   "p": 0.001953125,
+   "p_holm": 0.029296875
+  },
+  {
+   "agent": "tabq:qbin",
+   "cap": 0.01,
+   "mean_dU": 0.0016555854851790896,
+   "dz": 0.12456478831597978,
+   "p": 0.921875,
+   "p_holm": 1.0
+  },
+  {
+   "agent": "tabq:qbin",
+   "cap": 0.05,
+   "mean_dU": -0.04395670521822905,
+   "dz": -1.5707462381258983,
+   "p": 0.00390625,
+   "p_holm": 0.03515625
+  },
+  {
+   "agent": "tabq:qbin",
+   "cap": 0.25,
+   "mean_dU": -0.2913141813934845,
+   "dz": -1.2725242675870747,
+   "p": 0.001953125,
+   "p_holm": 0.029296875
+  },
+  {
+   "agent": "tabq:bandit",
+   "cap": 0.01,
+   "mean_dU": -0.006190946751662862,
+   "dz": -0.4181931842787255,
+   "p": 0.431640625,
+   "p_holm": 1.0
+  },
+  {
+   "agent": "tabq:bandit",
+   "cap": 0.05,
+   "mean_dU": -0.0524424699793829,
+   "dz": -1.6305596316628517,
+   "p": 0.001953125,
+   "p_holm": 0.029296875
+  },
+  {
+   "agent": "tabq:bandit",
+   "cap": 0.25,
+   "mean_dU": -0.017693313987019697,
+   "dz": -0.5801702664446351,
+   "p": 0.130859375,
+   "p_holm": 0.654296875
+  }
+ ],
+ "iqm": {
+  "dqn:main": [
+   0.022539064236182238,
+   0.010080365917401775,
+   0.03468778275587289
+  ],
+  "dqn:bandit": [
+   0.029863803318739668,
+   0.017728985306192626,
+   0.043889286809117745
+  ],
+  "dqn:vanilla": [
+   0.0072144804939446375,
+   -0.0013737668779973409,
+   0.015941660395249323
+  ],
+  "tabq:qbin": [
+   0.018725337925928696,
+   -0.024890094547702312,
+   0.029171883799783492
+  ],
+  "tabq:bandit": [
+   0.02678370421046094,
+   0.02078330472961313,
+   0.03458209622432831
+  ]
+ },
+ "poi": {
+  "dqn:main>dqn:main": 0.5,
+  "dqn:main>dqn:bandit": 0.41,
+  "dqn:main>dqn:vanilla": 0.6333333333333333,
+  "dqn:main>tabq:qbin": 0.49000000000000005,
+  "dqn:main>tabq:bandit": 0.38999999999999996,
+  "dqn:bandit>dqn:main": 0.59,
+  "dqn:bandit>dqn:bandit": 0.5,
+  "dqn:bandit>dqn:vanilla": 0.71,
+  "dqn:bandit>tabq:qbin": 0.5066666666666667,
+  "dqn:bandit>tabq:bandit": 0.42333333333333334,
+  "dqn:vanilla>dqn:main": 0.3666666666666667,
+  "dqn:vanilla>dqn:bandit": 0.29,
+  "dqn:vanilla>dqn:vanilla": 0.5,
+  "dqn:vanilla>tabq:qbin": 0.36999999999999994,
+  "dqn:vanilla>tabq:bandit": 0.2333333333333333,
+  "tabq:qbin>dqn:main": 0.5099999999999999,
+  "tabq:qbin>dqn:bandit": 0.49333333333333335,
+  "tabq:qbin>dqn:vanilla": 0.63,
+  "tabq:qbin>tabq:qbin": 0.5,
+  "tabq:qbin>tabq:bandit": 0.5,
+  "tabq:bandit>dqn:main": 0.61,
+  "tabq:bandit>dqn:bandit": 0.5766666666666667,
+  "tabq:bandit>dqn:vanilla": 0.7666666666666667,
+  "tabq:bandit>tabq:qbin": 0.5,
+  "tabq:bandit>tabq:bandit": 0.5
+ }
+}

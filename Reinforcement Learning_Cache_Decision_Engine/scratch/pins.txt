@@ -1,0 +1,10 @@
+gymnasium==1.4.0
+matplotlib==3.11.2
+numpy==2.5.4
+pandas==3.0.6
+pytest==9.1.1
+PyYAML==6.0.3
+scipy==1.18.1
+tensorboard==2.21.0
+torch==2.14.1+cpu
+zstandard==0.25.0

@@ -1,0 +1,66 @@
+code hash c33abec5effc3392  stage=dev backend=torch procs=10
+seed 102 cap 0.25: +12 rows (1794s)
+seed 101 cap 0.25: +12 rows (1801s)
+seed 100 cap 0.25: +12 rows (1806s)
+seed 101 cap 0.05: +12 rows (1832s)
+seed 100 cap 0.05: +12 rows (1835s)
+seed 102 cap 0.05: +12 rows (1843s)
+seed 100 cap 0.01: +12 rows (1868s)
+seed 101 cap 0.01: +12 rows (1881s)
+seed 102 cap 0.01: +12 rows (1888s)
+seed 103 cap 0.01: +12 rows (1893s)
+seed 103 cap 0.25: +12 rows (3028s)
+seed 103 cap 0.05: +12 rows (3042s)
+seed 104 cap 0.25: +12 rows (3045s)
+seed 104 cap 0.05: +12 rows (3060s)
+seed 104 cap 0.01: +12 rows (3065s)
+wrote 180 new rows to results\dqn_dev.csv in 3065s
+
+## GATE: U(dqn:main) - U(random:45), validation slice, paired by seed (5 dev seeds; need > 0 in >= 4)
+  cap   mean dU                95% CI   pos  PASS   collapse(dU<-0.05)
+ 0.01    0.0085      [0.0064, 0.0109]   5/5  True   False
+ 0.05    0.0146      [0.0008, 0.0284]   3/5  False  False
+ 0.25    0.0364      [0.0096, 0.0713]   5/5  True   False
+
+## ablation (does NOT change the verdict): U(dqn:bandit) - U(random:45), validation slice
+ 0.01    0.0081     [-0.0052, 0.0220]   3/5  criterion met: False
+ 0.05    0.0259      [0.0106, 0.0413]   5/5  criterion met: True
+ 0.25    0.0732      [0.0397, 0.1057]   5/5  criterion met: True
+
+## ablation (does NOT change the verdict): U(dqn:vanilla) - U(random:45), validation slice
+ 0.01    0.0277     [-0.0019, 0.0726]   3/5  criterion met: False
+ 0.05   -0.0021     [-0.0749, 0.0462]   4/5  criterion met: False
+ 0.25    0.0506      [0.0104, 0.0909]   4/5  criterion met: True
+
+PRE-REGISTERED VERDICT: PASS   (PASS: holds at 1%; PARTIAL: fails at 1% but holds at 5% and 25%; FAIL otherwise -> no evaluation-seed run)
+
+## context (validation slice, seed means): U / OHR / stale%
+  cap policy                           U     OHR  stale%
+ 0.01 dqn:main                    0.6372  0.3379   0.280
+ 0.01 dqn:bandit                  0.6367  0.3370   0.191
+ 0.01 dqn:vanilla                 0.6564  0.3543   0.344
+ 0.01 random:45                   0.6286  0.3318   0.476
+ 0.01 fixed:redis/3600s/normal    0.6118  0.3181   0.198
+ 0.01 place_size:p25              0.6492  0.3513   0.832
+ 0.01 tabq:bandit                 0.6497  0.3473   0.204
+ 0.01 tabq:ewidth                 0.6103  0.3162   0.120
+ 0.01 tabq:qbin                   0.6489  0.3472   0.398
+ 0.05 dqn:main                    0.9448  0.5920   2.887
+ 0.05 dqn:bandit                  0.9561  0.6012   3.038
+ 0.05 dqn:vanilla                 0.9281  0.5805   2.995
+ 0.05 random:45                   0.9302  0.5868   3.278
+ 0.05 fixed:redis/3600s/normal    0.9366  0.5843   2.535
+ 0.05 place_size:p25              0.9790  0.6194   2.357
+ 0.05 tabq:bandit                 0.9494  0.5893   1.687
+ 0.05 tabq:ewidth                 0.9286  0.5728   1.899
+ 0.05 tabq:qbin                   0.9549  0.5952   2.282
+ 0.25 dqn:main                    1.1638  0.8054   9.528
+ 0.25 dqn:bandit                  1.2007  0.8212   7.890
+ 0.25 dqn:vanilla                 1.1781  0.8092   8.215
+ 0.25 random:45                   1.1275  0.7645   7.722
+ 0.25 fixed:redis/3600s/normal    1.2270  0.8254   5.446
+ 0.25 place_size:p25              1.2004  0.8046   3.741
+ 0.25 tabq:bandit                 1.1754  0.7999   7.760
+ 0.25 tabq:ewidth                 1.1068  0.7655   9.655
+ 0.25 tabq:qbin                   0.8850  0.5543   4.250
+FINISHED

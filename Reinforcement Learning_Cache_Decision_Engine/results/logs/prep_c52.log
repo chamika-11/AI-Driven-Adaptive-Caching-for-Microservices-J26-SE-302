@@ -1,0 +1,5 @@
+sha256 cluster52.000.zst a44833f3b29757377f4a6b0a1a00526c87f46a9a48c508e69d50d0836e313b05 (2s)
+sha256 cluster52.001.zst 734c124bb427362c496ad6a661eea64f26902ec62257bf7680278a90bd6dc8ef (4s)
+sha256 cluster52.002.zst f9b2b406adee20e9ff0d0ccc590a2d8a75a6c225c0b0d43008f4b7cd70c5e74d (6s)
+parse {'rows_read': 412480596, 'rows_kept': 4345066, 'rows_bad_fieldcount': 0, 'rows_bad_value': 0, 'rows_unknown_op': 0, 'rows_out_of_order': 107, 'rows_dropped_by_key_sampling': 408135530, 'stopped_early_at_ts': None} (594s)
+saved data/processed/cluster52_000-002_k1.npz 37.722261 MB; {"rows": 4345066, "span_s": 20493.977832512315, "unique_keys": 270873, "ops": {"get": 3930848, "gets": 113342, "set": 542, "add": 172876, "cas": 100211, "delete": 27247}, "write_fraction": 0.06924543838919824, "keys_written": 157798, "writes_per_written_key_median": 2.0, "writes_per_written_key_max": 768, "write_ttl_top": [[86400, 180979], [1209600, 71860], [0, 27247], [43200, 18963], [1800, 1183]], "footprint_bytes": 140689392}

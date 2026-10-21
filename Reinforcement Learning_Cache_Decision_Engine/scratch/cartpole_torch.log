@@ -1,0 +1,8 @@
+seed 0: final greedy return  500.0   curve 90 30 96 98 91 500 500 373 100 500   (147s)
+seed 1: final greedy return  256.5   curve 92 48 63 96 100 68 92 93 500 84   (149s)
+seed 2: final greedy return   24.3   curve 96 137 70 200 380 500 230 149 500 16   (149s)
+seed 3: final greedy return   83.3   curve 105 68 110 64 59 44 22 97 86 91   (151s)
+seed 4: final greedy return   91.1   curve 86 60 132 500 136 500 95 93 42 88   (128s)
+
+seeds with mean return >= 300: 1/5  (gate C3 needs >= 3 of 5)
+FINISHED

@@ -1,0 +1,9 @@
+preset H5v: {'gamma': 0.99, 'batch_size': 64, 'buffer_size': 100000, 'learning_starts': 1000, 'train_every': 256, 'grad_steps': 128, 'target_update_interval': 10, 'eps_start': 1.0, 'eps_end': 0.04, 'eps_frac': 0.16} | learner {'hidden': 256, 'lr': 0.0023, 'weight_decay': 0.0, 'max_grad_norm': 10.0, 'dueling': False, 'double': False}
+seed 0: final greedy return  500.0   curve 167 110 101 188 500 500 109 500 90 500   (243s)
+seed 1: final greedy return  500.0   curve 104 107 25 88 39 500 500 260 374 500   (243s)
+seed 2: final greedy return  500.0   curve 89 94 265 400 94 366 500 129 500 500   (244s)
+seed 3: final greedy return   96.1   curve 114 90 72 70 43 500 137 133 90 100   (242s)
+seed 4: final greedy return  364.9   curve 118 116 251 443 79 257 269 89 484 399   (243s)
+
+mean final return 392.2; seeds >= 300: 4/5 (gate C3 needs >= 3 of 5 on seeds 0-4)
+FINISHED

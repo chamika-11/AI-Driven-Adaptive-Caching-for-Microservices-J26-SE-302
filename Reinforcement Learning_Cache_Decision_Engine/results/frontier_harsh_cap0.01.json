@@ -1,0 +1,228 @@
+{
+ "arm": "harsh",
+ "capacity_frac": 0.01,
+ "n_policies": 75,
+ "non_dominated": [
+  {
+   "policy": "fixed:local/5s/normal",
+   "stale_read_rate": 1.8808980238058143e-05,
+   "ohr": 0.07649748417923083
+  },
+  {
+   "policy": "fixed:local/5s/high",
+   "stale_read_rate": 1.8808980238058143e-05,
+   "ohr": 0.07649748417923083
+  },
+  {
+   "policy": "fixed:local/5s/low",
+   "stale_read_rate": 1.8808980238058143e-05,
+   "ohr": 0.07649748417923083
+  },
+  {
+   "policy": "fixed:both/5s/low",
+   "stale_read_rate": 0.00014767081327840106,
+   "ohr": 0.2685995386561595
+  },
+  {
+   "policy": "fixed:both/5s/normal",
+   "stale_read_rate": 0.00014767081327840106,
+   "ohr": 0.2685995386561595
+  },
+  {
+   "policy": "fixed:both/5s/high",
+   "stale_read_rate": 0.00014767081327840106,
+   "ohr": 0.2685995386561595
+  },
+  {
+   "policy": "fixed:redis/5s/low",
+   "stale_read_rate": 0.00015513426549708143,
+   "ohr": 0.26874608576648223
+  },
+  {
+   "policy": "fixed:redis/5s/high",
+   "stale_read_rate": 0.00015513426549708143,
+   "ohr": 0.26874608576648223
+  },
+  {
+   "policy": "fixed:redis/5s/normal",
+   "stale_read_rate": 0.00015513426549708143,
+   "ohr": 0.26874608576648223
+  },
+  {
+   "policy": "evict:fifo/redis/3600s",
+   "stale_read_rate": 0.000255324715039117,
+   "ohr": 0.2906421720599395
+  },
+  {
+   "policy": "evict:fifo/both/3600s",
+   "stale_read_rate": 0.0002580026888188343,
+   "ohr": 0.2906448500337192
+  },
+  {
+   "policy": "fixed:redis/30s/high",
+   "stale_read_rate": 0.0007626072187576125,
+   "ohr": 0.32768318363268734
+  },
+  {
+   "policy": "fixed:redis/30s/normal",
+   "stale_read_rate": 0.0007626072187576125,
+   "ohr": 0.32768318363268734
+  },
+  {
+   "policy": "fixed:redis/30s/low",
+   "stale_read_rate": 0.0007626072187576125,
+   "ohr": 0.32768318363268734
+  },
+  {
+   "policy": "stat_ttl:p10/redis",
+   "stale_read_rate": 0.0014437679785404092,
+   "ohr": 0.3307876219346819
+  },
+  {
+   "policy": "stat_ttl:p10/both",
+   "stale_read_rate": 0.0016186076398078068,
+   "ohr": 0.3308643959571673
+  },
+  {
+   "policy": "pred_ttl:redis",
+   "stale_read_rate": 0.0016957209342395238,
+   "ohr": 0.3313249515957525
+  },
+  {
+   "policy": "fixed:both/120s/high",
+   "stale_read_rate": 0.002366346626361204,
+   "ohr": 0.3313891425711653
+  },
+  {
+   "policy": "fixed:both/120s/low",
+   "stale_read_rate": 0.002366346626361204,
+   "ohr": 0.3313891425711653
+  },
+  {
+   "policy": "fixed:both/120s/normal",
+   "stale_read_rate": 0.002366346626361204,
+   "ohr": 0.3313891425711653
+  },
+  {
+   "policy": "fixed:redis/120s/normal",
+   "stale_read_rate": 0.0026236574486237256,
+   "ohr": 0.33164658947933506
+  },
+  {
+   "policy": "fixed:redis/120s/high",
+   "stale_read_rate": 0.0026236574486237256,
+   "ohr": 0.33164658947933506
+  },
+  {
+   "policy": "fixed:redis/120s/low",
+   "stale_read_rate": 0.0026236574486237256,
+   "ohr": 0.33164658947933506
+  },
+  {
+   "policy": "stat_ttl:median/redis",
+   "stale_read_rate": 0.0028286758316525074,
+   "ohr": 0.3317939607319404
+  },
+  {
+   "policy": "stat_ttl:median/both",
+   "stale_read_rate": 0.0034046343567832064,
+   "ohr": 0.3318926806615587
+  },
+  {
+   "policy": "stat_ttl:mean/redis",
+   "stale_read_rate": 0.0036692240913716104,
+   "ohr": 0.3320853388573259
+  },
+  {
+   "policy": "aimd:a60/b0.5",
+   "stale_read_rate": 0.004092622753362634,
+   "ohr": 0.33213200003903903
+  },
+  {
+   "policy": "aimd:a60/b0.25",
+   "stale_read_rate": 0.0044157221800184745,
+   "ohr": 0.3321485330951646
+  },
+  {
+   "policy": "place_hash:0.10",
+   "stale_read_rate": 0.005972970727503009,
+   "ohr": 0.34232923611598093
+  },
+  {
+   "policy": "place_size:p25",
+   "stale_read_rate": 0.00765438309796721,
+   "ohr": 0.36273551642320007
+  },
+  {
+   "policy": "evict:sieve/redis/3600s",
+   "stale_read_rate": 0.021023378445662,
+   "ohr": 0.42741393459571475
+  },
+  {
+   "policy": "evict:s3fifo/both/3600s",
+   "stale_read_rate": 0.03203590194680564,
+   "ohr": 0.44063380042314754
+  },
+  {
+   "policy": "evict:s3fifo/redis/3600s",
+   "stale_read_rate": 0.03434388581138676,
+   "ohr": 0.4409959771164259
+  }
+ ],
+ "envelope": [
+  [
+   1.8808980238058143e-05,
+   0.07649748417923083
+  ],
+  [
+   0.00014767081327840106,
+   0.2685995386561595
+  ],
+  [
+   0.000255324715039117,
+   0.2906421720599395
+  ],
+  [
+   0.0007626072187576125,
+   0.32768318363268734
+  ],
+  [
+   0.00765438309796721,
+   0.36273551642320007
+  ],
+  [
+   0.021023378445662,
+   0.42741393459571475
+  ],
+  [
+   0.03203590194680564,
+   0.44063380042314754
+  ],
+  [
+   0.03434388581138676,
+   0.4409959771164259
+  ]
+ ],
+ "bounds": [
+  {
+   "policy": "belady_plain",
+   "stale_read_rate": 0.1370844757091935,
+   "ohr": 0.5650762991618798
+  },
+  {
+   "policy": "belady_ttl_constrained",
+   "stale_read_rate": 0.0,
+   "ohr": 0.5634308780720628
+  },
+  {
+   "policy": "zerostale_oracle_ttl:both",
+   "stale_read_rate": 0.00014104877493519756,
+   "ohr": 0.33088384800982734
+  },
+  {
+   "policy": "zerostale_oracle_ttl:redis",
+   "stale_read_rate": 0.00013827665275142263,
+   "ohr": 0.3313353603038992
+  }
+ ]
+}

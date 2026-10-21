@@ -1,0 +1,9 @@
+preset H3: {'gamma': 0.99, 'batch_size': 64, 'buffer_size': 50000, 'learning_starts': 1000, 'train_every': 1, 'eps_start': 1.0, 'eps_end': 0.05, 'eps_frac': 0.3, 'tau': 0.005} | learner {'hidden': 128, 'lr': 0.00025, 'weight_decay': 0.0, 'max_grad_norm': 10.0}
+seed 10: final greedy return   54.7   curve 163 131 72 72 69 15 60 34 61 27   (488s)
+seed 11: final greedy return  130.7   curve 119 44 75 89 66 35 91 21 84 123   (495s)
+seed 12: final greedy return   96.9   curve 44 62 57 94 87 82 90 93 92 93   (505s)
+seed 13: final greedy return  500.0   curve 96 94 91 62 90 100 500 93 49 500   (493s)
+seed 14: final greedy return   93.1   curve 200 86 101 118 79 20 100 108 91 89   (497s)
+
+mean final return 175.1; seeds >= 300: 1/5 (gate C3 needs >= 3 of 5 on seeds 0-4)
+FINISHED
