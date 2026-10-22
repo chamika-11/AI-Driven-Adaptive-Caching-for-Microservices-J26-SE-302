@@ -1,40 +1,22 @@
-"""
-config.py — Central Configuration for the TTL Engine.
-
-All settings are loaded from environment variables. If a .env file is present
-in the project root, it is loaded automatically via python-dotenv.
-
-Usage:
-    from config import cfg
-    print(cfg.MIN_TTL)
-"""
-
 import os
 import logging
 from pathlib import Path
 
-# Load .env file from the project root (two levels up from src/)
+# Load .env file from the project root
 try:
     from dotenv import load_dotenv
-    # Walk up to find .env relative to this file's location
     _env_path = Path(__file__).resolve().parent.parent / ".env"
     load_dotenv(dotenv_path=_env_path)
 except ImportError:
-    pass  # python-dotenv not installed; fall back to system env vars only
+    pass
 
 logger = logging.getLogger(__name__)
 
 
 class Config:
-    """
-    Immutable configuration object. All values are read once at import time.
-    Override any setting by setting the corresponding environment variable.
-    """
-
-    # ── TTL Bounds ──────────────────────────────────────────────────────────
-    MIN_TTL: int = int(os.getenv("MIN_TTL", "10"))           # seconds
-    MAX_TTL: int = int(os.getenv("MAX_TTL", "3600"))         # seconds
-    DEFAULT_TTL: int = int(os.getenv("DEFAULT_TTL", "300"))  # fallback TTL for unknown keys
+    MIN_TTL: int = int(os.getenv("MIN_TTL", "10"))
+    MAX_TTL: int = int(os.getenv("MAX_TTL", "3600"))
+    DEFAULT_TTL: int = int(os.getenv("DEFAULT_TTL", "300"))
 
     # ── API Server ───────────────────────────────────────────────────────────
     PORT: int = int(os.getenv("PORT", "5001"))
@@ -42,7 +24,6 @@ class Config:
     DEBUG: bool = os.getenv("DEBUG", "false").lower() == "true"
 
     # ── Paths ────────────────────────────────────────────────────────────────
-    # Resolved relative to the project root (parent of src/)
     _PROJECT_ROOT: Path = Path(__file__).resolve().parent.parent
     MODEL_DIR: Path = Path(os.getenv("MODEL_DIR", str(_PROJECT_ROOT / "models")))
     DATA_DIR: Path = Path(os.getenv("DATA_DIR", str(_PROJECT_ROOT / "data")))
@@ -55,7 +36,7 @@ class Config:
     PROCESSED_FEATURES_PATH: Path = DATA_DIR / "processed_features.csv"
 
     # ── Model Behaviour ──────────────────────────────────────────────────────
-    HOTKEY_THRESHOLD: int = int(os.getenv("HOTKEY_THRESHOLD", "1000"))   # requests per 60s
+    HOTKEY_THRESHOLD: int = int(os.getenv("HOTKEY_THRESHOLD", "1000"))
     HOTKEY_WINDOW_SECONDS: int = int(os.getenv("HOTKEY_WINDOW_SECONDS", "60"))
     EWMA_ALPHA: float = float(os.getenv("EWMA_ALPHA", "0.3"))
 
@@ -66,7 +47,7 @@ class Config:
     TRAIN_SPLIT: float = float(os.getenv("TRAIN_SPLIT", "0.7"))
 
     # ── Retraining ───────────────────────────────────────────────────────────
-    ROLLBACK_TOLERANCE: float = float(os.getenv("ROLLBACK_TOLERANCE", "0.05"))  # 5% gate
+    ROLLBACK_TOLERANCE: float = float(os.getenv("ROLLBACK_TOLERANCE", "0.05"))
 
     def __repr__(self) -> str:
         return (
@@ -76,7 +57,7 @@ class Config:
         )
 
 
-# Singleton instance — import this everywhere
+# Singleton instance
 cfg = Config()
 
 logger.debug("Config loaded: %s", cfg)

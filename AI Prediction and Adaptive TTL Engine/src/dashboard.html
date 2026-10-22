@@ -3,76 +3,81 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Adaptive TTL Engine — Live Component Workflow</title>
+  <title>Adaptive TTL Engine &mdash; Live Caching Dashboard</title>
   
   <!-- Fonts: Inter & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
   <style>
     :root {
-      --bg-dark: #070b14;
-      --bg-card: rgba(14, 23, 42, 0.88);
-      --border-subtle: rgba(255, 255, 255, 0.08);
-      --cyan: #00f2fe;
-      --blue: #38bdf8;
-      --purple: #a855f7;
-      --emerald: #10b981;
-      --amber: #f59e0b;
-      --rose: #f43f5e;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --text-dim: #64748b;
-      --font-sans: 'Inter', -apple-system, sans-serif;
+      --bg-page: #f8fafc;
+      --bg-card: #ffffff;
+      --border-card: #e2e8f0;
+      --border-subtle: #f1f5f9;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --text-dim: #94a3b8;
+      
+      --blue-primary: #2563eb;
+      --blue-light: #eff6ff;
+      --blue-border: #bfdbfe;
+      
+      --emerald: #059669;
+      --emerald-light: #ecfdf5;
+      --emerald-border: #a7f3d0;
+      
+      --purple: #7c3aed;
+      --purple-light: #f5f3ff;
+      --purple-border: #ddd6fe;
+      
+      --amber: #d97706;
+      --amber-light: #fffbeb;
+      --amber-border: #fde68a;
+      
+      --rose: #e11d48;
+      --rose-light: #fff1f2;
+      --rose-border: #fecdd3;
+      
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.06), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      background: radial-gradient(circle at 15% 15%, #0d1527 0%, #070b14 60%, #04070e 100%);
+      background-color: var(--bg-page);
       color: var(--text-main);
       font-family: var(--font-sans);
       min-height: 100vh;
       line-height: 1.5;
-    }
-
-    .ambient-glow {
-      position: fixed;
-      width: 600px;
-      height: 600px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(0, 242, 254, 0.07) 0%, rgba(168, 85, 247, 0.04) 50%, transparent 70%);
-      top: -120px;
-      left: 15%;
-      pointer-events: none;
-      z-index: 0;
+      padding-bottom: 60px;
     }
 
     .container {
-      position: relative;
-      z-index: 1;
-      max-width: 1480px;
+      max-width: 1440px;
       margin: 0 auto;
-      padding: 24px 28px 50px;
+      padding: 24px 28px;
     }
 
-    /* Header */
+    /* ═══════ HEADER ═══════ */
     header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 18px 24px;
       background: var(--bg-card);
-      backdrop-filter: blur(16px);
-      border: 1px solid var(--border-subtle);
-      border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
-      margin-bottom: 20px;
+      border: 1px solid var(--border-card);
+      border-radius: 14px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 22px;
     }
 
     .brand {
@@ -82,57 +87,58 @@
     }
 
     .brand-icon {
-      width: 48px;
-      height: 48px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, #00f2fe 0%, #38bdf8 50%, #8b5cf6 100%);
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #2563eb, #3b82f6);
+      color: #ffffff;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 24px;
-      box-shadow: 0 0 20px rgba(0, 242, 254, 0.35);
+      font-size: 22px;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
     }
 
     .brand-text h1 {
-      font-size: 1.3rem;
-      font-weight: 800;
+      font-size: 1.28rem;
+      font-weight: 700;
+      color: var(--text-main);
       letter-spacing: -0.02em;
-      background: linear-gradient(to right, #ffffff, #c7d2fe, #38bdf8);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
     }
 
     .brand-text p {
-      font-size: 0.78rem;
+      font-size: 0.8rem;
       color: var(--text-muted);
       display: flex;
       align-items: center;
       gap: 8px;
+      margin-top: 2px;
     }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      padding: 2px 8px;
-      border-radius: 6px;
-      font-size: 0.68rem;
-      font-weight: 700;
-      font-family: var(--font-mono);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-
-    .badge-cyan { background: rgba(0, 242, 254, 0.15); border: 1px solid rgba(0, 242, 254, 0.35); color: #38bdf8; }
-    .badge-purple { background: rgba(168, 85, 247, 0.2); border: 1px solid rgba(168, 85, 247, 0.4); color: #d8b4fe; }
-    .badge-green { background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; }
-    .badge-amber { background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(245, 158, 11, 0.4); color: #fbbf24; }
-    .badge-rose { background: rgba(244, 63, 94, 0.2); border: 1px solid rgba(244, 63, 94, 0.4); color: #fb7185; }
 
     .header-actions {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
     }
+
+    /* ═══════ BADGES & BUTTONS ═══════ */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      letter-spacing: 0.02em;
+    }
+
+    .badge-blue { background: var(--blue-light); border: 1px solid var(--blue-border); color: var(--blue-primary); }
+    .badge-green { background: var(--emerald-light); border: 1px solid var(--emerald-border); color: var(--emerald); }
+    .badge-amber { background: var(--amber-light); border: 1px solid var(--amber-border); color: var(--amber); }
+    .badge-rose { background: var(--rose-light); border: 1px solid var(--rose-border); color: var(--rose); }
+    .badge-purple { background: var(--purple-light); border: 1px solid var(--purple-border); color: var(--purple); }
 
     .btn {
       cursor: pointer;
@@ -140,715 +146,744 @@
       font-size: 0.82rem;
       font-weight: 600;
       padding: 8px 16px;
-      border-radius: 10px;
-      border: 1px solid var(--border-subtle);
-      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      border: 1px solid var(--border-card);
+      background: #ffffff;
       color: var(--text-main);
-      transition: all 0.2s ease;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.15s ease;
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
     }
 
     .btn:hover {
-      background: rgba(255, 255, 255, 0.12);
-      border-color: rgba(255, 255, 255, 0.2);
+      background: #f1f5f9;
+      border-color: #cbd5e1;
     }
 
     .btn-primary {
-      background: linear-gradient(135deg, #00f2fe 0%, #38bdf8 100%);
-      color: #030712;
-      border: none;
-      box-shadow: 0 4px 16px rgba(0, 242, 254, 0.3);
+      background: var(--blue-primary);
+      border-color: var(--blue-primary);
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
     }
 
-    /* ═══════ INTEGRATION & DATA SOURCES ARCHITECTURE BAR ═══════ */
+    .btn-primary:hover {
+      background: #1d4ed8;
+      border-color: #1d4ed8;
+    }
+
+    .btn-danger {
+      border-color: var(--rose-border);
+      color: var(--rose);
+      background: #fff;
+    }
+
+    .btn-danger:hover {
+      background: var(--rose-light);
+    }
+
+    /* ═══════ INTEGRATIONS STATUS BAR ═══════ */
     .integrations-bar {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      margin-bottom: 20px;
-    }
-
-    .integration-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
-      border-radius: 14px;
-      padding: 14px 18px;
       display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .integration-header {
-      display: flex;
-      align-items: center;
       justify-content: space-between;
+      align-items: center;
+      background: #ffffff;
+      border: 1px solid var(--border-card);
+      border-radius: 10px;
+      padding: 10px 18px;
+      margin-bottom: 20px;
+      font-size: 0.78rem;
     }
 
-    .integration-title {
-      font-size: 0.82rem;
-      font-weight: 700;
+    .status-group {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 16px;
     }
 
-    .pipeline-flow {
+    .status-item {
       display: flex;
       align-items: center;
       gap: 6px;
-      font-family: var(--font-mono);
-      font-size: 0.72rem;
       color: var(--text-muted);
-      background: rgba(7, 11, 20, 0.6);
-      padding: 8px 12px;
-      border-radius: 8px;
-      border: 1px solid rgba(255, 255, 255, 0.04);
-      flex-wrap: wrap;
+      font-weight: 500;
     }
 
-    .flow-tag {
-      background: rgba(255, 255, 255, 0.06);
-      padding: 2px 7px;
-      border-radius: 5px;
-      color: #fff;
-      font-weight: 600;
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #94a3b8;
     }
+    .dot-green { background: #10b981; box-shadow: 0 0 6px rgba(16, 185, 129, 0.4); }
+    .dot-blue { background: #3b82f6; box-shadow: 0 0 6px rgba(59, 130, 246, 0.4); }
 
-    .flow-tag-cyan { background: rgba(0, 242, 254, 0.15); color: #38bdf8; }
-    .flow-tag-amber { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
-    .flow-arrow { color: var(--text-dim); }
-
-    /* ═══════ MANUAL KEY SELECTOR CONTROLS ═══════ */
-    .controls-panel {
+    /* ═══════ CONTROLS & SCENARIO BAR ═══════ */
+    .controls-card {
       background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
-      border-radius: 16px;
-      padding: 16px 20px;
-      margin-bottom: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
+      border: 1px solid var(--border-card);
+      border-radius: 14px;
+      padding: 18px 22px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 22px;
     }
 
-    .controls-top {
+    .controls-row {
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      gap: 16px;
+      align-items: center;
       flex-wrap: wrap;
+      gap: 16px;
     }
 
-    .selector-group {
+    .selector-box {
       display: flex;
       align-items: center;
-      gap: 12px;
-      flex: 1;
-      min-width: 320px;
+      gap: 10px;
     }
 
-    .selector-group label {
-      font-size: 0.8rem;
-      font-weight: 700;
+    .selector-box label {
+      font-size: 0.82rem;
+      font-weight: 600;
       color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      white-space: nowrap;
     }
 
     select {
-      flex: 1;
-      background: rgba(7, 11, 20, 0.9);
-      border: 1px solid var(--border-subtle);
+      background: #ffffff;
+      border: 1px solid var(--border-card);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-family: var(--font-sans);
+      font-size: 0.85rem;
+      font-weight: 600;
       color: var(--text-main);
-      padding: 9px 14px;
-      border-radius: 10px;
-      font-family: var(--font-mono);
-      font-size: 0.86rem;
+      box-shadow: var(--shadow-sm);
+      cursor: pointer;
       outline: none;
+      min-width: 380px;
     }
 
     select:focus {
-      border-color: var(--cyan);
-      box-shadow: 0 0 12px rgba(0, 242, 254, 0.25);
+      border-color: var(--blue-primary);
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
     }
 
-    /* Key Chips Grid */
-    .chips-label {
-      font-size: 0.74rem;
-      font-weight: 700;
-      color: var(--text-dim);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 6px;
-    }
-
-    .chips-grid {
-      display: grid;
-      grid-template-columns: repeat(10, 1fr);
+    .scenario-group {
+      display: flex;
+      align-items: center;
       gap: 8px;
     }
 
-    .key-chip {
-      cursor: pointer;
-      background: rgba(7, 11, 20, 0.7);
-      border: 1px solid var(--border-subtle);
-      border-radius: 10px;
-      padding: 8px 6px;
-      text-align: center;
-      transition: all 0.2s ease;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .key-chip:hover {
-      border-color: var(--cyan);
-      transform: translateY(-2px);
-      background: rgba(15, 23, 42, 0.9);
-    }
-
-    .key-chip.active {
-      border-color: var(--cyan);
-      background: linear-gradient(135deg, rgba(0, 242, 254, 0.15), rgba(15, 23, 42, 0.95));
-      box-shadow: 0 0 16px rgba(0, 242, 254, 0.25);
-    }
-
-    .chip-key-name {
-      font-family: var(--font-mono);
-      font-size: 0.74rem;
-      font-weight: 700;
-      color: #fff;
-    }
-
-    .chip-tag {
-      font-size: 0.62rem;
-      font-family: var(--font-mono);
-      color: var(--text-muted);
-    }
-
-    .chip-tag.read { color: #34d399; }
-    .chip-tag.write { color: #fbbf24; }
-
-    /* ═══════ THE CORE WORKFLOW PIPELINE ═══════ */
-    .workflow-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
-      border-radius: 18px;
-      padding: 22px 24px;
+    /* ═══════ TOP KPI METRIC CARDS ═══════ */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
       margin-bottom: 22px;
-      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.3);
     }
 
-    .workflow-title {
-      font-size: 1.05rem;
+    .kpi-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 12px;
+      padding: 16px 20px;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .kpi-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-1px);
+    }
+
+    .kpi-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .kpi-label {
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .kpi-value {
+      font-size: 1.8rem;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      letter-spacing: -0.03em;
+    }
+
+    .kpi-desc {
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* ═══════ 4-STAGE DECISION PIPELINE ═══════ */
+    .workflow-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 14px;
+      padding: 22px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 22px;
+    }
+
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .section-title h2 {
+      font-size: 0.98rem;
       font-weight: 700;
-      margin-bottom: 16px;
+      color: var(--text-main);
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      gap: 8px;
     }
 
     .pipeline-grid {
       display: grid;
-      grid-template-columns: 210px 28px 1fr 28px 190px 28px 160px 28px 230px;
-      align-items: center;
-      gap: 4px;
-      background: rgba(7, 11, 20, 0.7);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: 16px;
-      padding: 20px 16px;
+      grid-template-columns: 1fr auto 1fr auto 1fr auto 1.1fr;
+      align-items: stretch;
+      gap: 8px;
     }
 
     .pipe-step {
-      background: rgba(15, 23, 42, 0.85);
-      border: 1px solid var(--border-subtle);
+      background: #f8fafc;
+      border: 1px solid var(--border-card);
       border-radius: 12px;
-      padding: 14px;
-      min-height: 175px;
+      padding: 16px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      transition: all 0.25s ease;
+      gap: 12px;
+      position: relative;
     }
 
-    .pipe-step:hover {
-      border-color: var(--cyan);
-      transform: translateY(-2px);
+    .pipe-step.highlight {
+      background: var(--blue-light);
+      border-color: var(--blue-border);
     }
 
-    .pipe-step-num {
-      font-size: 0.65rem;
-      font-weight: 700;
-      color: var(--cyan);
-      text-transform: uppercase;
-      font-family: var(--font-mono);
-      margin-bottom: 2px;
-    }
-
-    .pipe-step-title {
-      font-size: 0.82rem;
-      font-weight: 700;
-      color: #fff;
-      margin-bottom: 6px;
-    }
-
-    .pipe-source-badge {
-      font-size: 0.62rem;
-      color: var(--text-dim);
-      font-family: var(--font-mono);
-      display: block;
-      margin-bottom: 6px;
-    }
-
-    .pipe-arrow {
-      text-align: center;
-      color: var(--text-dim);
-      font-size: 1.1rem;
-      font-weight: bold;
-    }
-
-    /* Dual Engine Box (Step 2) */
-    .dual-engine-box {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-bottom: 8px;
-    }
-
-    .engine-subcard {
-      background: rgba(7, 11, 20, 0.8);
-      border: 1px solid var(--border-subtle);
-      border-radius: 8px;
-      padding: 8px 10px;
-      transition: all 0.2s ease;
-    }
-
-    .engine-subcard.winner-glow {
-      border-color: var(--cyan);
-      box-shadow: 0 0 16px rgba(0, 242, 254, 0.25);
-      background: linear-gradient(135deg, rgba(0, 242, 254, 0.08), rgba(15, 23, 42, 0.9));
-    }
-
-    .engine-name {
-      font-size: 0.72rem;
-      font-weight: 700;
-      color: var(--text-muted);
+    .step-header {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 4px;
+      align-items: flex-start;
     }
 
-    .engine-score {
-      font-size: 1.25rem;
-      font-weight: 800;
-      font-family: var(--font-mono);
-      color: #fff;
-    }
-
-    .engine-rmse {
-      font-size: 0.66rem;
-      font-family: var(--font-mono);
+    .step-num {
+      font-size: 0.68rem;
+      font-weight: 700;
       color: var(--text-dim);
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+    }
+
+    .step-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text-main);
       margin-top: 2px;
     }
 
-    .selector-tag {
-      background: rgba(0, 242, 254, 0.12);
-      border: 1px solid rgba(0, 242, 254, 0.3);
-      padding: 4px 8px;
-      border-radius: 6px;
-      font-size: 0.66rem;
+    .step-content {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .step-big-text {
       font-family: var(--font-mono);
-      color: #38bdf8;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .step-footer {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      border-top: 1px dashed var(--border-card);
+      padding-top: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .pipe-arrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #94a3b8;
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+
+    /* Dual ML Box */
+    .dual-ml-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .ml-mini-box {
+      background: #ffffff;
+      border: 1px solid var(--border-card);
+      border-radius: 8px;
+      padding: 8px;
       text-align: center;
     }
 
-    /* Fusion Final Card (Step 5) */
-    .fusion-card {
-      background: linear-gradient(135deg, rgba(0, 242, 254, 0.15), rgba(168, 85, 247, 0.12));
-      border: 1px solid rgba(0, 242, 254, 0.4);
+    .ml-mini-box.selected {
+      border-color: var(--purple-border);
+      background: var(--purple-light);
+    }
+
+    .ml-name {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .ml-val {
+      font-size: 1rem;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      color: var(--purple);
+    }
+
+    .ml-rmse {
+      font-size: 0.62rem;
+      color: var(--text-dim);
+    }
+
+    /* Final TTL Box */
+    .ttl-final-box {
+      background: linear-gradient(135deg, #1e1b4b, #312e81);
+      color: #ffffff;
       border-radius: 12px;
-      padding: 14px;
-      min-height: 175px;
+      padding: 16px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
+      gap: 10px;
+      box-shadow: 0 4px 12px rgba(49, 46, 129, 0.2);
     }
 
-    .ttl-val-large {
+    .ttl-final-val {
       font-size: 1.85rem;
       font-weight: 800;
       font-family: var(--font-mono);
-      color: var(--cyan);
-      text-shadow: 0 0 20px rgba(0, 242, 254, 0.45);
+      color: #38bdf8;
     }
 
-    /* Charts Row */
+    .ttl-action-tag {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #a7f3d0;
+      word-break: break-all;
+    }
+
+    /* ═══════ CHARTS ═══════ */
     .charts-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 16px;
       margin-bottom: 22px;
     }
 
     .chart-card {
       background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
-      border-radius: 16px;
+      border: 1px solid var(--border-card);
+      border-radius: 14px;
       padding: 18px 20px;
-      height: 310px;
-      display: flex;
-      flex-direction: column;
+      box-shadow: var(--shadow-sm);
     }
 
-    .chart-card h3 {
-      font-size: 0.88rem;
-      font-weight: 700;
-      margin-bottom: 12px;
+    .chart-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      margin-bottom: 12px;
     }
 
-    .chart-canvas-wrap {
-      flex: 1;
-      position: relative;
-      min-height: 0;
-    }
-
-    /* Feed Table */
-    .feed-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
-      border-radius: 16px;
-      padding: 18px 20px;
-    }
-
-    .feed-card h3 {
+    .chart-header h3 {
       font-size: 0.88rem;
       font-weight: 700;
-      margin-bottom: 12px;
+      color: var(--text-main);
       display: flex;
-      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .chart-wrap {
+      position: relative;
+      height: 220px;
+      width: 100%;
+    }
+
+    /* ═══════ TELEMETRY LOG TABLE ═══════ */
+    .table-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
     }
 
     .table-wrap {
-      background: rgba(7, 11, 20, 0.7);
-      border-radius: 10px;
-      border: 1px solid var(--border-subtle);
-      max-height: 240px;
-      overflow-y: auto;
-      font-family: var(--font-mono);
+      overflow-x: auto;
+      margin-top: 12px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
       font-size: 0.78rem;
+      text-align: left;
     }
 
-    table { width: 100%; border-collapse: collapse; text-align: left; }
-    th {
-      background: rgba(15, 23, 42, 0.95);
-      position: sticky;
-      top: 0;
-      padding: 9px 12px;
-      color: var(--text-dim);
-      font-size: 0.68rem;
+    thead th {
+      background: #f8fafc;
+      padding: 10px 14px;
+      color: var(--text-muted);
+      font-weight: 700;
+      font-size: 0.72rem;
       text-transform: uppercase;
-      border-bottom: 1px solid var(--border-subtle);
-      z-index: 2;
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid var(--border-card);
     }
-    td { padding: 8px 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.03); color: #cbd5e1; }
-    tr:hover td { background: rgba(255, 255, 255, 0.03); }
 
-    @media (max-width: 1250px) {
-      .chips-grid { grid-template-columns: repeat(5, 1fr); }
-      .pipeline-grid { grid-template-columns: 1fr; }
-      .charts-grid { grid-template-columns: 1fr; }
-      .integrations-bar { grid-template-columns: 1fr; }
-      .pipe-arrow { transform: rotate(90deg); margin: 6px 0; }
+    tbody td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #f1f5f9;
+      color: var(--text-main);
+      vertical-align: middle;
+    }
+
+    tbody tr:hover {
+      background: #f8fafc;
+    }
+
+    @media (max-width: 1100px) {
+      .pipeline-grid {
+        grid-template-columns: 1fr;
+      }
+      .pipe-arrow {
+        transform: rotate(90deg);
+        margin: 4px 0;
+      }
+      .kpi-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      .charts-grid {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="ambient-glow"></div>
 
   <div class="container">
-    <!-- Header -->
+    <!-- ═══════ HEADER ═══════ -->
     <header>
       <div class="brand">
-        <!-- <div class="brand-icon">⚡</div> -->
+        <div class="brand-icon">⚡</div>
         <div class="brand-text">
-          <h1>Adaptive TTL Engine — Component Workflow & Telemetry</h1>
-          <!-- <p>
-            <span>Twitter Memcached Cluster Trace</span>
-            <span class="badge badge-cyan">100% Real Trace Data</span>
-            <span>• Sidecar Proxy Interception • Prometheus & Kafka Integration</span>
-          </p> -->
+          <h1>Adaptive TTL Engine &mdash; Caching Dashboard</h1>
+          <p>
+            <span>Twitter Cluster Production Trace</span>
+            <span>•</span>
+            <span>Real-time ML Forecast & CDC Mutation Protection</span>
+          </p>
         </div>
       </div>
 
       <div class="header-actions">
-        <!-- <span class="badge badge-green" id="statusBadge">Live API Connected</span> -->
         <button class="btn btn-primary" onclick="triggerManualRequest()">
-          <span>⚡</span> <span>Send Request (Sidecar GET)</span>
+          <span>⚡</span> <span>Send Microservice Request</span>
         </button>
-        <button class="btn" style="border-color: rgba(244, 63, 94, 0.4); color: #fb7185;" onclick="invalidateCurrentKey()" title="Simulate TTL expiration or DB write invalidation">
-          <span>🔄</span> <span>Expire / Invalidate Key</span>
+        <button class="btn btn-danger" onclick="invalidateCurrentKey()" title="Simulates a database write or cache expiration">
+          <span>🔄</span> <span>Expire / Invalidate</span>
         </button>
       </div>
     </header>
 
-    <!-- ═══════ INTEGRATION & DATA SOURCES ARCHITECTURE BAR ═══════ -->
+    <!-- ═══════ INTEGRATIONS STATUS BAR ═══════ -->
     <!-- <div class="integrations-bar">
-      <div class="integration-card">
-        <div class="integration-header">
-          <span class="integration-title">
-            <span>📈 Read Traffic Pipeline</span>
-            <span class="badge badge-cyan">Prometheus & API Logs</span>
-          </span>
-          <span class="badge badge-green">30,457 Operations Ingested</span>
+      <div class="status-group">
+        <div class="status-item">
+          <span class="dot dot-green"></span>
+          <span>AI TTL Engine:</span>
+          <span class="badge badge-green" id="apiStatusBadge">Port 5001 Active</span>
         </div>
-        <div class="pipeline-flow">
-          <span class="flow-tag">API Access Logs</span>
-          <span class="flow-arrow">➔</span>
-          <span class="flow-tag flow-tag-cyan">Prometheus 5-min Scrape</span>
-          <span class="flow-arrow">➔</span>
-          <span class="flow-tag">11,170 Feature Rows</span>
-          <span class="flow-arrow">➔</span>
-          <span class="flow-tag flow-tag-cyan">LSTM & ARIMA Predictor</span>
+        <div class="status-item">
+          <span class="dot dot-blue"></span>
+          <span>Kafka & Debezium CDC:</span>
+          <span class="badge badge-blue" id="cdcStatusBadge">Connected</span>
+        </div>
+        <div class="status-item">
+          <span class="dot dot-green"></span>
+          <span>Prometheus Scraper:</span>
+          <span class="badge badge-green">Scraping /metrics (5s)</span>
         </div>
       </div>
 
-      <div class="integration-card">
-        <div class="integration-header">
-          <span class="integration-title">
-            <span>🔄 Mutation Volatility Pipeline</span>
-            <span class="badge badge-amber">Debezium CDC ➔ Kafka</span>
-          </span>
-          <span class="badge badge-amber">127 Trace Mutations</span>
-        </div>
-        <div class="pipeline-flow">
-          <span class="flow-tag">Database WAL (Write Log)</span>
-          <span class="flow-arrow">➔</span>
-          <span class="flow-tag flow-tag-amber">Debezium CDC Connector</span>
-          <span class="flow-arrow">➔</span>
-          <span class="flow-tag">Kafka Topic: db.mutations</span>
-          <span class="flow-arrow">➔</span>
-          <span class="flow-tag flow-tag-amber">EWMA Volatility (α=0.30)</span>
-        </div>
+      <div class="status-item">
+        <span id="orchestrationEventBadge" class="badge badge-purple">Event Orchestrator: Ready</span>
       </div>
     </div> -->
 
-    <!-- ═══════ MANUAL KEY SELECTOR CONTROLS ═══════ -->
-    <div class="controls-panel">
-      <div class="controls-top">
-        <div class="selector-group">
-          <label>Selected Cache Key:</label>
+    <!-- ═══════ CONTROLS & SCENARIO BAR ═══════ -->
+    <div class="controls-card">
+      <div class="controls-row">
+        <div class="selector-box">
+          <label for="keySelect">Target Cache Key:</label>
           <select id="keySelect" onchange="onSelectChange()">
-            <option value="twitter:key:1">twitter:key:1 (Top Read Key — 7,691 reads, 0 writes)</option>
-            <option value="twitter:key:2">twitter:key:2 (High Read Key — 6,573 reads, 0 writes)</option>
-            <option value="twitter:key:3">twitter:key:3 (High Read Key — 6,075 reads, 0 writes)</option>
-            <option value="twitter:key:4">twitter:key:4 (Active Read Key — 4,865 reads, 0 writes)</option>
-            <option value="twitter:key:5">twitter:key:5 (Active Read Key — 4,652 reads, 0 writes)</option>
-            <option value="twitter:key:6">twitter:key:6 (Volatile R/W Key — 51 reads, 34 writes)</option>
-            <option value="twitter:key:7">twitter:key:7 (Volatile R/W Key — 36 reads, 25 writes)</option>
-            <option value="twitter:key:8">twitter:key:8 (Active R/W Key — 406 reads, 24 writes)</option>
-            <option value="twitter:key:9">twitter:key:9 (Volatile R/W Key — 66 reads, 23 writes)</option>
-            <option value="twitter:key:10">twitter:key:10 (Volatile R/W Key — 42 reads, 21 writes)</option>
+            <option value="twitter:key:1">twitter:key:1 (High Demand — 7,691 reads, 0 writes)</option>
+            <option value="twitter:key:2">twitter:key:2 (Read-Heavy — 6,573 reads, 0 writes)</option>
+            <option value="twitter:key:3">twitter:key:3 (Active Read — 6,075 reads, 0 writes)</option>
+            <option value="twitter:key:4">twitter:key:4 (Active Read — 4,865 reads, 0 writes)</option>
+            <option value="twitter:key:5">twitter:key:5 (Standard Read — 4,652 reads, 0 writes)</option>
+            <option value="twitter:key:6">twitter:key:6 (Volatile R/W — 51 reads, 34 DB writes)</option>
+            <option value="twitter:key:7">twitter:key:7 (Volatile R/W — 36 reads, 25 DB writes)</option>
+            <option value="twitter:key:8">twitter:key:8 (Active R/W — 406 reads, 24 DB writes)</option>
+            <option value="twitter:key:9">twitter:key:9 (Volatile R/W — 66 reads, 23 DB writes)</option>
+            <option value="twitter:key:10">twitter:key:10 (Volatile R/W — 42 reads, 21 DB writes)</option>
+            <option value="university-management-api:/enrollments">university-management-api:/enrollments (Orchestrator Pre-warm)</option>
           </select>
         </div>
 
-        <!-- <div class="scenario-buttons">
+        <!-- <div class="scenario-group">
+          <span style="font-size:0.78rem; font-weight:600; color:var(--text-muted);">Quick Scenarios:</span>
           <button class="btn" onclick="applyPreset('read_heavy')">🟢 Read-Heavy (Key 1)</button>
-          <button class="btn" onclick="applyPreset('write_storm')">🔴 Write-Storm (Key 6)</button>
-          <button class="btn" onclick="applyPreset('stampede')">⚡ Hot Stampede</button>
+          <button class="btn" onclick="applyPreset('write_storm')">🔴 CDC Mutation (Key 6)</button>
+          <button class="btn" onclick="applyPreset('stampede')">⚡ Hot Spike</button>
           <button class="btn" onclick="applyPreset('prewarm')">📌 Pre-warm Pin</button>
-        </div>
-      </div> -->
-
-      <!-- Quick-Pick Key Chips Grid -->
-      <!-- <div>
-        <div class="chips-label">Direct Key Selector (Click any key to inspect its exact lifecycle & TTL):</div>
-        <div class="chips-grid" id="chipsGrid">
-        </div>
+        </div> -->
       </div>
-    </div> -->
+    </div>
 
-    <!-- ═══════ THE 5-STEP WORKFLOW PIPELINE ═══════ -->
-    <div class="workflow-card">
-      <div class="workflow-title">
-        <span>🔍 Entire Process Workflow: From Sidecar Cache Miss to Redis Allocation</span>
-        <span class="badge badge-purple" id="stepInfo">Manual Inspection Active</span>
+    <!-- ═══════ TOP KPI CARDS ═══════ -->
+    <div class="kpi-grid">
+      <!-- 1. Suggested TTL -->
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-label">Suggested Adaptive TTL</span>
+          <span class="badge badge-blue">Dynamic</span>
+        </div>
+        <div class="kpi-value" id="kpiTtl" style="color: var(--blue-primary);">1,164s</div>
+        <div class="kpi-desc" id="kpiTtlSub">Calculated from AI forecast & CDC penalty</div>
+      </div>
+
+      <!-- 2. AI Popularity -->
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-label">Predicted Popularity</span>
+          <span class="badge badge-purple" id="kpiWinnerBadge">LSTM Winner</span>
+        </div>
+        <div class="kpi-value" id="kpiPop" style="color: var(--purple);">0.980</div>
+        <div class="kpi-desc">Global LSTM forecast (RMSE: 1.38)</div>
+      </div>
+
+      <!-- 3. CDC Volatility -->
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-label">Data Volatility (CDC)</span>
+          <span class="badge badge-amber">Debezium + Kafka</span>
+        </div>
+        <div class="kpi-value" id="kpiVol" style="color: var(--amber);">0.000</div>
+        <div class="kpi-desc" id="kpiVolSub">0 recent mutations (Low Risk)</div>
+      </div>
+
+      <!-- 4. Cache Interception Status -->
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-label">Cache Access Outcome</span>
+          <span class="badge badge-green" id="kpiLatencyBadge">0.4ms RAM</span>
+        </div>
+        <div class="kpi-value" id="kpiStatus" style="color: var(--emerald); font-size:1.45rem;">CACHE HIT</div>
+        <div class="kpi-desc" id="kpiStatusSub">Served from Redis cache without querying DB</div>
+      </div>
+    </div>
+
+    <!-- ═══════ 4-STAGE DECISION WORKFLOW ═══════ -->
+    <div class="workflow-section">
+      <div class="section-title">
+        <h2>
+          <span>🔍</span>
+          <span>Decision Pipeline: How the Adaptive TTL is Computed</span>
+        </h2>
+        <span class="badge badge-blue" id="pipelineStatusBadge">Microservice Request Evaluated</span>
       </div>
 
       <div class="pipeline-grid">
-        <!-- Step 1: Sidecar Cache Miss / Hit -->
-        <div class="pipe-step" id="step1Card">
+        <!-- Stage 1: Microservice Request & Cache Interception -->
+        <div class="pipe-step" id="stage1Step">
           <div>
-            <div class="pipe-step-num" id="step1Num">Step 1: Sidecar Interception</div>
-            <div class="pipe-step-title" id="step1Title">Cache Miss Event</div>
-            <span class="pipe-source-badge" id="step1Source">Envoy / Sidecar Proxy</span>
+            <div class="step-header">
+              <span class="step-num">Stage 1: Interception</span>
+              <span class="badge badge-rose" id="stage1Badge">Cache Miss</span>
+            </div>
+            <div class="step-title">Sidecar Gateway</div>
           </div>
-          <div>
-            <div style="font-family: var(--font-mono); font-size: 0.88rem; font-weight: 700; color: #fff;" id="flowKey">
-              twitter:key:1
-            </div>
-            <div style="font-size: 0.65rem; color: var(--text-dim); margin-top: 3px;" id="flowKeyHash">
-              Hash: z44uy84y4444...
+
+          <div class="step-content">
+            <div class="step-big-text" id="stage1Key" style="font-size:0.92rem; word-break:break-all;">twitter:key:1</div>
+            <div style="font-size:0.75rem; color:var(--text-muted);" id="stage1Detail">
+              Checking Redis RAM...
             </div>
           </div>
-          <div>
-            <span class="badge badge-rose" id="step1Badge" style="font-size: 0.65rem;">CACHE MISS (404)</span>
-            <div style="font-size: 0.68rem; color: var(--text-muted); margin-top: 4px;" id="step1Desc">
-              Sidecar asks AI Engine: <code style="color:var(--cyan);">POST /predict</code>
-            </div>
+
+          <div class="step-footer">
+            <span>Interception Proxy</span>
+            <span style="font-weight:600;" id="stage1Latency">Sidecar ➔ AI Engine</span>
           </div>
         </div>
 
         <div class="pipe-arrow">➔</div>
 
-        <!-- Step 2: Prediction Engines (LSTM vs ARIMA) & Model Selector -->
-        <div class="pipe-step" style="grid-column: span 1;">
-          <div>
-            <div class="pipe-step-num">Step 2: Dual ML Prediction</div>
-            <div class="pipe-step-title">Popularity Forecasting</div>
-            <span class="pipe-source-badge">📥 Ingestion: Prometheus Scrapes</span>
-          </div>
-
-          <div class="dual-engine-box">
-            <!-- LSTM -->
-            <div class="engine-subcard winner-glow" id="cardLstm">
-              <div class="engine-name">
-                <span>🧠 LSTM</span>
-                <span class="badge badge-cyan" style="font-size: 0.58rem;">Winner</span>
-              </div>
-              <div class="engine-score" id="scoreLstm">0.980</div>
-              <div class="engine-rmse" id="rmseLstm">RMSE: 1.3807</div>
-            </div>
-
-            <!-- ARIMA -->
-            <div class="engine-subcard" id="cardArima">
-              <div class="engine-name">
-                <span>📈 ARIMA</span>
-                <span style="font-size: 0.58rem; color: var(--text-dim);">Baseline</span>
-              </div>
-              <div class="engine-score" id="scoreArima">0.100</div>
-              <div class="engine-rmse" id="rmseArima">RMSE: 82.8492</div>
-            </div>
-          </div>
-
-          <div class="selector-tag" id="selectorDecision">
-            Dynamic Selector: LSTM Selected (1.38 &lt; 82.85 RMSE)
-          </div>
-        </div>
-
-        <div class="pipe-arrow">➔</div>
-
-        <!-- Step 3: Volatility EWMA -->
+        <!-- Stage 2: Dual ML Forecasting (LSTM vs ARIMA) -->
         <div class="pipe-step">
           <div>
-            <div class="pipe-step-num">Step 3: Mutation Volatility</div>
-            <div class="pipe-step-title">DB Volatility Engine</div>
-            <span class="pipe-source-badge">📥 Ingestion: Debezium CDC + Kafka</span>
-          </div>
-          <div>
-            <div style="font-family: var(--font-mono); font-size: 1.25rem; font-weight: 800; color: #fbbf24;" id="flowVol">
-              0.000
+            <div class="step-header">
+              <span class="step-num">Stage 2: Popularity</span>
+              <span class="badge badge-purple">ML Engine</span>
             </div>
-            <div style="font-size: 0.68rem; color: var(--text-dim); margin-top: 2px;" id="flowWrites">
-              0 DB writes in trace
+            <div class="step-title">Demand Forecasting</div>
+          </div>
+
+          <div class="dual-ml-container">
+            <div class="ml-mini-box selected" id="boxLstm">
+              <div class="ml-name">🧠 LSTM</div>
+              <div class="ml-val" id="stage2LstmVal">0.980</div>
+              <div class="ml-rmse">RMSE: 1.38</div>
+            </div>
+            <div class="ml-mini-box" id="boxArima">
+              <div class="ml-name">📈 ARIMA</div>
+              <div class="ml-val" id="stage2ArimaVal">0.100</div>
+              <div class="ml-rmse">RMSE: 82.85</div>
             </div>
           </div>
-          <div style="font-size: 0.68rem; color: var(--text-muted);">
-            EWMA (α = 0.30) Penalty
+
+          <div class="step-footer">
+            <span>Winner:</span>
+            <span style="color:var(--purple); font-weight:700;" id="stage2Winner">LSTM (Lower Error)</span>
           </div>
         </div>
 
         <div class="pipe-arrow">➔</div>
 
-        <!-- Step 4: Hot Key Guard -->
+        <!-- Stage 3: Data Volatility Penalty (CDC / Kafka) -->
         <div class="pipe-step">
           <div>
-            <div class="pipe-step-num">Step 4: Hot-Key Protection</div>
-            <div class="pipe-step-title">Stampede Guard</div>
-            <span class="pipe-source-badge">Sliding Window Rate Monitor</span>
-          </div>
-          <div>
-            <div style="font-family: var(--font-mono); font-size: 1.05rem; font-weight: 700; color: #34d399;" id="flowHot">
-              NORMAL
+            <div class="step-header">
+              <span class="step-num">Stage 3: Freshness</span>
+              <span class="badge badge-amber">Debezium CDC</span>
             </div>
-            <div style="font-size: 0.68rem; color: var(--text-dim); margin-top: 2px;" id="flowHotReq">
-              38 / 1000 req
+            <div class="step-title">Mutation Tracking</div>
+          </div>
+
+          <div class="step-content">
+            <div class="step-big-text" style="color:var(--amber);" id="stage3Vol">0.000 EWMA</div>
+            <div style="font-size:0.75rem; color:var(--text-muted);" id="stage3Writes">
+              0 Database writes in log
             </div>
           </div>
-          <div style="font-size: 0.68rem; color: var(--text-muted);">
-            Threshold: 1,000 req/60s
+
+          <div class="step-footer">
+            <span>Kafka Ingestion</span>
+            <span style="font-weight:600;" id="stage3Penalty">Penalty: 1.00 (None)</span>
           </div>
         </div>
 
         <div class="pipe-arrow">➔</div>
 
-        <!-- Step 5: Dynamic TTL Fusion & Cache Action -->
-        <div class="fusion-card">
-          <div>
-            <div class="pipe-step-num" style="color: #c4b5fd;">Step 5: Redis Write & TTL</div>
-            <div class="pipe-step-title">Final Cache Action</div>
-            <span class="pipe-source-badge" style="color: #cbd5e1;">TTL Fusion Formula Applied</span>
+        <!-- Stage 4: Redis Action & Final Adaptive TTL -->
+        <div class="ttl-final-box">
+          <div class="step-header">
+            <span class="step-num" style="color:#c7d2fe;">Stage 4: Cache Action</span>
+            <span class="badge" style="background:rgba(255,255,255,0.2); color:#fff;">Redis RAM</span>
           </div>
 
           <div>
-            <div class="ttl-val-large" id="flowTtl">3,528s</div>
-            <div style="font-family: var(--font-mono); font-size: 0.72rem; color: #e2e8f0; margin-top: 4px;" id="flowFormula">
-              Base: 3528s × Penalty: 1.000
+            <div style="font-size:0.74rem; color:#cbd5e1; text-transform:uppercase;">Applied TTL:</div>
+            <div class="ttl-final-val" id="stage4Ttl">1,164s</div>
+            <div style="font-size:0.72rem; color:#e2e8f0; margin-top:2px;" id="stage4Formula">
+              Base: 1,164s × Penalty: 1.000
             </div>
           </div>
 
-          <div style="font-size: 0.72rem; color: var(--cyan); font-weight: 700; font-family: var(--font-mono); word-break: break-all;" id="flowAction">
-            SET twitter:key:1 EX 3528
+          <div class="ttl-action-tag" id="stage4Action">
+            SET twitter:key:1 EX 1164
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Charts Row -->
+    <!-- ═══════ CHARTS ═══════ -->
     <div class="charts-grid">
+      <!-- Chart 1: Adaptive TTL vs Static 300s -->
       <div class="chart-card">
-        <h3>
-          <span>📈 LSTM Forecast vs ARIMA Baseline vs 300s Fixed TTL</span>
-          <span class="badge badge-cyan">Model Comparison</span>
-        </h3>
-        <div class="chart-canvas-wrap">
-          <canvas id="modelCompChart"></canvas>
+        <div class="chart-header">
+          <h3>
+            <span>📈</span>
+            <span>Adaptive TTL vs Static 300s Fixed TTL</span>
+          </h3>
+          <span class="badge badge-blue">Dynamic Memory Allocation</span>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="ttlChart"></canvas>
         </div>
       </div>
 
+      <!-- Chart 2: Hit Ratio Improvement -->
       <div class="chart-card">
-        <h3>
-          <span>🎯 Cumulative Hit Ratio: Adaptive TTL vs Static 300s</span>
-          <span class="badge badge-green" id="hitRatioBadge">+28.2% Improvement</span>
-        </h3>
-        <div class="chart-canvas-wrap">
+        <div class="chart-header">
+          <h3>
+            <span>🎯</span>
+            <span>Cache Hit Ratio Comparison</span>
+          </h3>
+          <span class="badge badge-green" id="hitDiffBadge">+28% Hit Rate</span>
+        </div>
+        <div class="chart-wrap">
           <canvas id="hitChart"></canvas>
         </div>
       </div>
     </div>
 
-    <!-- Telemetry Table -->
-    <div class="feed-card">
-      <h3>
-        <span>📡 Request History Log (Manual Key Inspections)</span>
-        <button class="btn" style="font-size: 0.7rem; padding: 4px 10px;" onclick="clearLog()">Clear Log</button>
-      </h3>
+    <!-- ═══════ REQUEST TELEMETRY TABLE ═══════ -->
+    <div class="table-card">
+      <div class="chart-header">
+        <h3>
+          <span>📡</span>
+          <span>Recent Request Telemetry & Decision Log</span>
+        </h3>
+        <button class="btn" style="padding: 4px 10px; font-size: 0.72rem;" onclick="clearLog()">Clear History</button>
+      </div>
+
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
               <th>Time</th>
               <th>Cache Key</th>
-              <th>Sidecar Event</th>
-              <th>Prometheus LSTM</th>
-              <th>ARIMA Baseline</th>
-              <th>Selected Winner</th>
-              <th>Kafka Volatility (V)</th>
+              <th>Event</th>
+              <th>AI Popularity</th>
+              <th>Selected Model</th>
+              <th>CDC Volatility</th>
               <th>Adaptive TTL</th>
               <th>Fixed TTL</th>
               <th>Cache Action</th>
@@ -860,87 +895,56 @@
     </div>
   </div>
 
+  <!-- ═══════ INTERACTIVE JAVASCRIPT LOGIC ═══════ -->
   <script>
     let isApiLive = false;
-
-    // Charts
-    let compChart = null;
+    let ttlChart = null;
     let hitChart = null;
 
     let simTotal = 0;
     let simAdaptiveHits = 0;
     let simFixedHits = 0;
 
+    // Simulated Redis memory store (Tracks active cached keys & expiry timestamps)
+    const redisCache = {};
+
+    // Baseline metadata from the real Twitter cluster trace
     const keyMetadata = {
-      "twitter:key:1": { hash: "z44uy84y44444vVMS3...", reads: 7691, writes: 0, pop: 0.980, vol: 0.000, type: "Read-Heavy" },
-      "twitter:key:2": { hash: "z44uy84y4444442MVn...", reads: 6573, writes: 0, pop: 0.880, vol: 0.000, type: "Read-Heavy" },
-      "twitter:key:3": { hash: "z44uy84y444444T06n...", reads: 6075, writes: 0, pop: 0.820, vol: 0.000, type: "Read-Heavy" },
-      "twitter:key:4": { hash: "z44uyo4F44444AIcyo...", reads: 4865, writes: 0, pop: 0.710, vol: 0.000, type: "Read-Heavy" },
-      "twitter:key:5": { hash: "z44uy84G444444bdsbin...", reads: 4652, writes: 0, pop: 0.680, vol: 0.000, type: "Read-Heavy" },
-      "twitter:key:6": { hash: "z44uyo4F44444CIcyo...", reads: 51, writes: 34, pop: 0.120, vol: 0.350, type: "Volatile R/W" },
-      "twitter:key:7": { hash: "z44uyo4F4444uCIIVC...", reads: 36, writes: 25, pop: 0.090, vol: 0.250, type: "Volatile R/W" },
-      "twitter:key:8": { hash: "z44uy84yyrIAE7ZqG4...", reads: 406, writes: 24, pop: 0.220, vol: 0.200, type: "Volatile R/W" },
-      "twitter:key:9": { hash: "z44uyo4F44444CeMyo...", reads: 66, writes: 23, pop: 0.110, vol: 0.190, type: "Volatile R/W" },
-      "twitter:key:10": { hash: "z44uyo4F44444CQiyo...", reads: 42, writes: 21, pop: 0.080, vol: 0.180, type: "Volatile R/W" },
+      "twitter:key:1": { reads: 7691, writes: 0, pop: 0.980, vol: 0.000, desc: "High Demand Key" },
+      "twitter:key:2": { reads: 6573, writes: 0, pop: 0.880, vol: 0.000, desc: "Read-Heavy Key" },
+      "twitter:key:3": { reads: 6075, writes: 0, pop: 0.820, vol: 0.000, desc: "Active Key" },
+      "twitter:key:4": { reads: 4865, writes: 0, pop: 0.710, vol: 0.000, desc: "Active Key" },
+      "twitter:key:5": { reads: 4652, writes: 0, pop: 0.680, vol: 0.000, desc: "Standard Key" },
+      "twitter:key:6": { reads: 51, writes: 34, pop: 0.120, vol: 0.350, desc: "Volatile R/W Key" },
+      "twitter:key:7": { reads: 36, writes: 25, pop: 0.090, vol: 0.250, desc: "Volatile R/W Key" },
+      "twitter:key:8": { reads: 406, writes: 24, pop: 0.220, vol: 0.200, desc: "Active R/W Key" },
+      "twitter:key:9": { reads: 66, writes: 23, pop: 0.110, vol: 0.190, desc: "Volatile R/W Key" },
+      "twitter:key:10": { reads: 42, writes: 21, pop: 0.080, vol: 0.180, desc: "Volatile R/W Key" },
+      "university-management-api:/enrollments": { reads: 120, writes: 10, pop: 0.750, vol: 0.160, desc: "Orchestrator Pre-warmed" }
     };
 
-    function renderKeyChips() {
-      const container = document.getElementById('chipsGrid');
-      container.innerHTML = '';
-      const currentSelected = document.getElementById('keySelect').value;
-
-      for (let i = 1; i <= 10; i++) {
-        const key = `twitter:key:${i}`;
-        const meta = keyMetadata[key];
-        const chip = document.createElement('div');
-        chip.className = `key-chip ${key === currentSelected ? 'active' : ''}`;
-        chip.id = `chip-${key.replace(':', '_')}`;
-        chip.onclick = () => {
-          document.getElementById('keySelect').value = key;
-          onSelectChange();
-        };
-
-        chip.innerHTML = `
-          <div class="chip-key-name">Key ${i}</div>
-          <div class="chip-tag ${meta.writes > 0 ? 'write' : 'read'}">
-            ${meta.writes > 0 ? `⚡ ${meta.writes}w / ${meta.reads}r` : `👁️ ${meta.reads} reads`}
-          </div>
-        `;
-        container.appendChild(chip);
-      }
-    }
-
     function initCharts() {
-      const ctxComp = document.getElementById('modelCompChart').getContext('2d');
-      const ctxHit = document.getElementById('hitChart').getContext('2d');
-
-      compChart = new Chart(ctxComp, {
+      // 1. TTL Comparison Chart
+      const ctxTtl = document.getElementById('ttlChart').getContext('2d');
+      ttlChart = new Chart(ctxTtl, {
         type: 'line',
         data: {
           labels: [],
           datasets: [
             {
-              label: 'LSTM Predicted TTL (s)',
-              borderColor: '#00f2fe',
-              backgroundColor: 'rgba(0, 242, 254, 0.1)',
+              label: 'Adaptive TTL (Seconds)',
+              borderColor: '#2563eb',
+              backgroundColor: 'rgba(37, 99, 235, 0.08)',
               borderWidth: 2.5,
-              tension: 0.3,
+              tension: 0.25,
               fill: true,
               data: []
             },
             {
-              label: 'ARIMA Baseline TTL (s)',
-              borderColor: '#a855f7',
-              borderWidth: 1.8,
-              borderDash: [4, 4],
-              fill: false,
-              data: []
-            },
-            {
-              label: 'Static 300s TTL',
-              borderColor: '#f43f5e',
+              label: 'Static 300s Baseline',
+              borderColor: '#dc2626',
               borderWidth: 1.5,
-              borderDash: [6, 6],
+              borderDash: [5, 5],
               fill: false,
               pointRadius: 0,
               data: []
@@ -950,34 +954,37 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          animation: false,
-          plugins: { legend: { labels: { color: '#94a3b8', font: { family: 'Inter', size: 10 } } } },
+          plugins: {
+            legend: { position: 'top', labels: { boxWidth: 12, font: { family: 'Inter', size: 11, weight: 600 }, color: '#475569' } }
+          },
           scales: {
-            x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 } } },
-            y: { min: 0, max: 3800, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 } } }
+            x: { grid: { color: '#f1f5f9' }, ticks: { font: { family: 'JetBrains Mono', size: 10 }, color: '#94a3b8' } },
+            y: { min: 0, max: 3800, grid: { color: '#f1f5f9' }, ticks: { font: { family: 'JetBrains Mono', size: 10 }, color: '#94a3b8' } }
           }
         }
       });
 
+      // 2. Hit Ratio Chart
+      const ctxHit = document.getElementById('hitChart').getContext('2d');
       hitChart = new Chart(ctxHit, {
         type: 'line',
         data: {
           labels: [],
           datasets: [
             {
-              label: 'Adaptive TTL Hit %',
-              borderColor: '#10b981',
-              backgroundColor: 'rgba(16, 185, 129, 0.1)',
+              label: 'Adaptive Cache Hit %',
+              borderColor: '#059669',
+              backgroundColor: 'rgba(5, 150, 105, 0.08)',
               borderWidth: 2.5,
-              tension: 0.3,
+              tension: 0.25,
               fill: true,
               data: []
             },
             {
-              label: 'Fixed 300s Hit %',
-              borderColor: '#f59e0b',
+              label: 'Static 300s Hit %',
+              borderColor: '#d97706',
               borderWidth: 1.8,
-              tension: 0.3,
+              borderDash: [4, 4],
               fill: false,
               data: []
             }
@@ -986,31 +993,23 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          animation: false,
-          plugins: { legend: { labels: { color: '#94a3b8', font: { family: 'Inter', size: 10 } } } },
+          plugins: {
+            legend: { position: 'top', labels: { boxWidth: 12, font: { family: 'Inter', size: 11, weight: 600 }, color: '#475569' } }
+          },
           scales: {
-            x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 } } },
-            y: { min: 40, max: 100, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 }, callback: v => v + '%' } }
+            x: { grid: { color: '#f1f5f9' }, ticks: { font: { family: 'JetBrains Mono', size: 10 }, color: '#94a3b8' } },
+            y: { min: 40, max: 100, grid: { color: '#f1f5f9' }, ticks: { font: { family: 'JetBrains Mono', size: 10 }, color: '#94a3b8', callback: v => v + '%' } }
           }
         }
       });
     }
 
-    // In-Memory Redis Cache Simulation (Models real Sidecar + Redis RAM storage)
-    const redisCache = {};
-
-    function invalidateCurrentKey() {
-      const key = document.getElementById('keySelect').value;
-      delete redisCache[key];
-      evaluateKey(key, true);
-    }
-
     async function evaluateKey(key, forceMiss = false, overrideVol = null, isHot = false, overrideTtl = null) {
-      const info = keyMetadata[key] || { hash: "custom_key", reads: 100, writes: 0, pop: 0.3, vol: 0.0 };
+      const info = keyMetadata[key] || { reads: 100, writes: 0, pop: 0.5, vol: 0.0 };
       const now = Date.now();
       const cached = redisCache[key];
 
-      // Check for active CACHE HIT in Redis RAM
+      // Check for Cache Hit in Redis memory
       if (!forceMiss && cached && now < cached.expiresAt && overrideVol === null && !isHot && !overrideTtl) {
         cached.hits++;
         const remainingSeconds = Math.max(1, Math.round((cached.expiresAt - now) / 1000));
@@ -1018,10 +1017,11 @@
         return;
       }
 
+      // Cache Miss: Query Live AI TTL Engine API
       let lstmPop = info.pop;
-      let arimaPop = round4(info.pop * 0.9);
+      let arimaPop = Math.round(info.pop * 0.9 * 1000) / 1000;
       let vol = overrideVol !== null ? overrideVol : info.vol;
-      let finalTtl = 1330;
+      let ttl = 1164;
       let winner = "LSTM";
       let lstmRmse = 1.3807;
       let arimaRmse = 82.8492;
@@ -1039,12 +1039,12 @@
           });
           if (resp.ok) {
             const data = await resp.json();
-            finalTtl = data.suggested_ttl;
+            ttl = data.suggested_ttl;
             vol = data.volatility;
             isHot = data.is_hot;
             if (data.engines) {
               lstmPop = data.engines.lstm.popularity || data.popularity;
-              arimaPop = data.engines.arima.popularity || round4(lstmPop * 0.9);
+              arimaPop = data.engines.arima.popularity || arimaPop;
               winner = data.engines.selector.winner || "LSTM";
               lstmRmse = data.engines.lstm.rmse || 1.3807;
               arimaRmse = data.engines.arima.rmse || 82.8492;
@@ -1054,23 +1054,23 @@
       }
 
       if (overrideTtl) {
-        finalTtl = overrideTtl;
+        ttl = overrideTtl;
       } else if (!isApiLive) {
         if (isHot) {
-          finalTtl = 3600;
+          ttl = 3600;
         } else {
           const baseTtl = 3600 * lstmPop;
           const penalty = 1.0 / (1.0 + vol * 10.0);
-          finalTtl = Math.max(10, Math.min(3600, Math.round(baseTtl * penalty)));
+          ttl = Math.max(10, Math.min(3600, Math.round(baseTtl * penalty)));
         }
       }
 
-      // Store in simulated Redis memory
+      // Store into Redis memory simulation
       redisCache[key] = {
         key: key,
         cachedAt: now,
-        expiresAt: now + (finalTtl * 1000),
-        ttl: finalTtl,
+        expiresAt: now + (ttl * 1000),
+        ttl: ttl,
         hits: 0,
         lstmPop: lstmPop,
         arimaPop: arimaPop,
@@ -1081,184 +1081,165 @@
         isHot: isHot
       };
 
-      renderWorkflow(key, info, lstmPop, arimaPop, winner, lstmRmse, arimaRmse, vol, isHot, finalTtl, overrideTtl);
+      renderCacheMiss(key, info, lstmPop, arimaPop, winner, lstmRmse, arimaRmse, vol, isHot, ttl, overrideTtl);
     }
 
     function renderCacheHit(key, info, cached, remainingSeconds) {
-      document.getElementById('stepInfo').textContent = "Cache Hit: Fast Path (0.4ms) — Bypassed DB & ML Re-calculation";
-      document.getElementById('stepInfo').className = "badge badge-green";
+      // 1. KPI Cards
+      document.getElementById('kpiTtl').textContent = remainingSeconds.toLocaleString() + "s";
+      document.getElementById('kpiTtl').style.color = "var(--emerald)";
+      document.getElementById('kpiTtlSub').textContent = `Remaining in Redis RAM of original ${cached.ttl}s`;
 
-      // Step 1: Hit UI
-      document.getElementById('step1Title').textContent = "Cache Hit Event";
-      document.getElementById('step1Badge').textContent = "CACHE HIT (200 OK)";
-      document.getElementById('step1Badge').className = "badge badge-green";
-      document.getElementById('step1Desc').innerHTML = `Served from Redis in <b style="color:#34d399;">0.4ms</b> (Hit #${cached.hits})`;
+      document.getElementById('kpiPop').textContent = cached.lstmPop.toFixed(3);
+      document.getElementById('kpiWinnerBadge').textContent = "Model Bypassed";
+      document.getElementById('kpiWinnerBadge').className = "badge badge-green";
 
-      document.getElementById('flowKey').textContent = key;
-      document.getElementById('flowKeyHash').textContent = "Hash: " + (info.hash ? info.hash.slice(0, 16) + "..." : "hash_key");
+      document.getElementById('kpiVol').textContent = cached.vol.toFixed(3);
+      document.getElementById('kpiVolSub').textContent = `${info.writes || 0} DB writes in log`;
 
-      // Step 2, 3, 4: Keep visible but show bypassed status
-      document.getElementById('scoreLstm').textContent = cached.lstmPop.toFixed(3);
-      document.getElementById('rmseLstm').textContent = "RMSE: " + cached.lstmRmse.toFixed(4);
-      document.getElementById('scoreArima').textContent = cached.arimaPop.toFixed(3);
-      document.getElementById('rmseArima').textContent = "RMSE: " + cached.arimaRmse.toFixed(4);
-      document.getElementById('selectorDecision').textContent = `⚡ Fast-Path: Model Bypassed (Active TTL: ${remainingSeconds}s remaining)`;
+      document.getElementById('kpiStatus').textContent = "CACHE HIT";
+      document.getElementById('kpiStatus').style.color = "var(--emerald)";
+      document.getElementById('kpiLatencyBadge').textContent = "0.4ms RAM";
+      document.getElementById('kpiLatencyBadge').className = "badge badge-green";
+      document.getElementById('kpiStatusSub').textContent = `Hit #${cached.hits} — Bypassed DB & ML inference`;
 
-      document.getElementById('flowVol').textContent = cached.vol.toFixed(3);
-      document.getElementById('flowWrites').textContent = `${info.writes || 0} DB writes in trace`;
+      // 2. Decision Pipeline
+      document.getElementById('pipelineStatusBadge').textContent = "Fast Path: Cache Hit (0.4ms)";
+      document.getElementById('pipelineStatusBadge').className = "badge badge-green";
 
-      const hotEl = document.getElementById('flowHot');
-      if (cached.isHot) {
-        hotEl.textContent = "STAMPEDE DETECTED";
-        hotEl.style.color = "#f43f5e";
-        document.getElementById('flowHotReq').textContent = "1,420 req / 60s";
-      } else {
-        hotEl.textContent = "NORMAL";
-        hotEl.style.color = "#34d399";
-        document.getElementById('flowHotReq').textContent = "38 req / 60s";
-      }
+      document.getElementById('stage1Badge').textContent = "CACHE HIT (200 OK)";
+      document.getElementById('stage1Badge').className = "badge badge-green";
+      document.getElementById('stage1Key').textContent = key;
+      document.getElementById('stage1Detail').textContent = `Served from Redis RAM in 0.4ms`;
+      document.getElementById('stage1Latency').textContent = "Redis RAM (No DB call)";
 
-      // Step 5: Active TTL & Read Action
-      document.getElementById('flowTtl').textContent = remainingSeconds.toLocaleString() + "s";
-      document.getElementById('flowFormula').textContent = `Cached in RAM (${remainingSeconds}s remaining of ${cached.ttl}s TTL)`;
-      document.getElementById('flowAction').textContent = `GET ${key} ➔ 200 OK (0.4ms RAM)`;
-      document.getElementById('flowAction').style.color = "#34d399";
+      // Stage 2 & 3: show active bypassed status
+      document.getElementById('stage2LstmVal').textContent = cached.lstmPop.toFixed(3);
+      document.getElementById('stage2ArimaVal').textContent = cached.arimaPop.toFixed(3);
+      document.getElementById('stage2Winner').textContent = "Model Bypassed (Cache Active)";
 
-      addFeedRow(key, cached.lstmPop, cached.arimaPop, cached.winner, cached.vol, remainingSeconds, cached.isHot, null, true, cached.hits);
-      pushChart(remainingSeconds, Math.round(3600 * cached.arimaPop));
+      document.getElementById('stage3Vol').textContent = cached.vol.toFixed(3);
+      document.getElementById('stage3Penalty').textContent = "Cached (Fresh)";
 
-      // Active chip styling
-      document.querySelectorAll('.key-chip').forEach(el => el.classList.remove('active'));
-      const activeChip = document.getElementById(`chip-${key.replace(':', '_')}`);
-      if (activeChip) activeChip.classList.add('active');
+      // Stage 4
+      document.getElementById('stage4Ttl').textContent = remainingSeconds.toLocaleString() + "s";
+      document.getElementById('stage4Formula').textContent = `Active cache entry (${remainingSeconds}s remaining)`;
+      document.getElementById('stage4Action').textContent = `GET ${key} ➔ 200 OK (0.4ms)`;
+
+      addLogRow(key, "CACHE HIT", cached.lstmPop, cached.winner, cached.vol, remainingSeconds, `GET ➔ 200 OK (${remainingSeconds}s left)`);
+      updateCharts(remainingSeconds);
     }
 
-    function renderWorkflow(key, info, lstmPop, arimaPop, winner, lstmRmse, arimaRmse, vol, isHot, ttl, overrideTtl) {
-      document.getElementById('stepInfo').textContent = "Cache Miss: Sidecar invoked ML Prediction & Redis SET";
-      document.getElementById('stepInfo').className = "badge badge-purple";
+    function renderCacheMiss(key, info, lstmPop, arimaPop, winner, lstmRmse, arimaRmse, vol, isHot, ttl, overrideTtl) {
+      // 1. KPI Cards
+      document.getElementById('kpiTtl').textContent = ttl.toLocaleString() + "s";
+      document.getElementById('kpiTtl').style.color = "var(--blue-primary)";
+      document.getElementById('kpiTtlSub').textContent = overrideTtl ? "Pre-warm TTL override enforced" : (isHot ? "Hot Stampede: Clamped to 3,600s" : "Computed from LSTM & CDC Volatility");
 
-      // Step 1: Miss UI
-      document.getElementById('step1Title').textContent = "Cache Miss Event";
-      document.getElementById('step1Badge').textContent = "CACHE MISS (404)";
-      document.getElementById('step1Badge').className = "badge badge-rose";
-      document.getElementById('step1Desc').innerHTML = `Sidecar asks AI Engine: <code style="color:var(--cyan);">POST /predict</code>`;
+      document.getElementById('kpiPop').textContent = lstmPop.toFixed(3);
+      document.getElementById('kpiWinnerBadge').textContent = `${winner} Winner`;
+      document.getElementById('kpiWinnerBadge').className = "badge badge-purple";
 
-      document.getElementById('flowKey').textContent = key;
-      document.getElementById('flowKeyHash').textContent = "Hash: " + (info.hash ? info.hash.slice(0, 16) + "..." : "hash_key");
+      document.getElementById('kpiVol').textContent = vol.toFixed(3);
+      document.getElementById('kpiVolSub').textContent = vol > 0.15 ? "High writes detected via Kafka CDC" : "Low mutation rate";
 
-      document.getElementById('scoreLstm').textContent = lstmPop.toFixed(3);
-      document.getElementById('rmseLstm').textContent = "RMSE: " + lstmRmse.toFixed(4);
+      document.getElementById('kpiStatus').textContent = "CACHE MISS";
+      document.getElementById('kpiStatus').style.color = "var(--rose)";
+      document.getElementById('kpiLatencyBadge').textContent = "DB Fetch + ML";
+      document.getElementById('kpiLatencyBadge').className = "badge badge-rose";
+      document.getElementById('kpiStatusSub').textContent = "Sidecar fetched database & updated cache";
 
-      document.getElementById('scoreArima').textContent = arimaPop.toFixed(3);
-      document.getElementById('rmseArima').textContent = "RMSE: " + arimaRmse.toFixed(4);
+      // 2. Decision Pipeline
+      document.getElementById('pipelineStatusBadge').textContent = "Full Pipeline: Miss ➔ ML Predict ➔ Redis SET";
+      document.getElementById('pipelineStatusBadge').className = "badge badge-blue";
 
-      if (winner === "LSTM") {
-        document.getElementById('cardLstm').classList.add('winner-glow');
-        document.getElementById('cardArima').classList.remove('winner-glow');
-      } else {
-        document.getElementById('cardArima').classList.add('winner-glow');
-        document.getElementById('cardLstm').classList.remove('winner-glow');
-      }
+      document.getElementById('stage1Badge').textContent = "CACHE MISS (404)";
+      document.getElementById('stage1Badge').className = "badge badge-rose";
+      document.getElementById('stage1Key').textContent = key;
+      document.getElementById('stage1Detail').textContent = `Sidecar calls AI: POST /predict`;
+      document.getElementById('stage1Latency').textContent = "DB Fetch: 4.2ms";
 
-      document.getElementById('selectorDecision').textContent = `Dynamic Selector: ${winner} Selected (${min(lstmRmse, arimaRmse).toFixed(2)} < ${max(lstmRmse, arimaRmse).toFixed(2)} RMSE)`;
+      // Stage 2
+      document.getElementById('stage2LstmVal').textContent = lstmPop.toFixed(3);
+      document.getElementById('stage2ArimaVal').textContent = arimaPop.toFixed(3);
+      document.getElementById('stage2Winner').textContent = `${winner} Selected (Lower Error)`;
 
-      document.getElementById('flowVol').textContent = vol.toFixed(3);
-      document.getElementById('flowWrites').textContent = `${info.writes || 0} DB writes in trace`;
+      // Stage 3
+      document.getElementById('stage3Vol').textContent = `${vol.toFixed(3)} EWMA`;
+      document.getElementById('stage3Writes').textContent = `${info.writes || 0} writes in database trace`;
+      const penaltyVal = (1.0 / (1.0 + vol * 10.0)).toFixed(2);
+      document.getElementById('stage3Penalty').textContent = `Penalty: ×${penaltyVal}`;
 
-      const hotEl = document.getElementById('flowHot');
-      if (isHot) {
-        hotEl.textContent = "STAMPEDE DETECTED";
-        hotEl.style.color = "#f43f5e";
-        document.getElementById('flowHotReq').textContent = "1,420 req / 60s";
-      } else {
-        hotEl.textContent = "NORMAL";
-        hotEl.style.color = "#34d399";
-        document.getElementById('flowHotReq').textContent = "38 req / 60s";
-      }
+      // Stage 4
+      document.getElementById('stage4Ttl').textContent = ttl.toLocaleString() + "s";
+      document.getElementById('stage4Formula').textContent = overrideTtl ? "Pre-Warm Window Enforced" : (isHot ? "Hot Key Protection" : `Base: ${Math.round(3600 * lstmPop)}s × Penalty: ${penaltyVal}`);
+      document.getElementById('stage4Action').textContent = `SET ${key} EX ${ttl}`;
 
-      document.getElementById('flowTtl').textContent = ttl.toLocaleString() + "s";
-      const base = Math.round(3600 * lstmPop);
-      const penalty = (1.0 / (1.0 + vol * 10.0)).toFixed(3);
-      document.getElementById('flowFormula').textContent = overrideTtl 
-        ? "Pre-Warm Override Active"
-        : (isHot ? "Hot Stampede: Clamped to 3,600s" : `Base: ${base}s × Penalty: ${penalty}`);
-
-      document.getElementById('flowAction').textContent = `SET ${key} EX ${ttl}`;
-      document.getElementById('flowAction').style.color = "var(--cyan)";
-
-      addFeedRow(key, lstmPop, arimaPop, winner, vol, ttl, isHot, overrideTtl, false, 0);
-      pushChart(ttl, Math.round(3600 * arimaPop));
-
-      // Update active chip styling
-      document.querySelectorAll('.key-chip').forEach(el => el.classList.remove('active'));
-      const activeChip = document.getElementById(`chip-${key.replace(':', '_')}`);
-      if (activeChip) activeChip.classList.add('active');
+      addLogRow(key, "CACHE MISS", lstmPop, winner, vol, ttl, `SET ${key} EX ${ttl}`);
+      updateCharts(ttl);
     }
 
-    function addFeedRow(key, lstmPop, arimaPop, winner, vol, ttl, isHot, overrideTtl, isHit = false, hitCount = 0) {
+    function addLogRow(key, eventType, pop, winner, vol, ttl, action) {
       const now = new Date().toTimeString().split(' ')[0];
       const tbody = document.getElementById('telemetryBody');
       const tr = document.createElement('tr');
-      
-      let sidecarBadge = '<span class="badge badge-rose" style="font-size:0.6rem;">MISS ➔ DB FETCH</span>';
-      let actionCell = `<span style="color:var(--cyan); font-weight:700;">SET EX ${ttl}s</span>`;
-      let statusBadge = overrideTtl 
-        ? '<span class="badge badge-purple">PINNED</span>'
-        : (isHot ? '<span class="badge badge-rose">HOT KEY</span>' : (vol > 0.1 ? '<span class="badge badge-amber">STALE GUARD</span>' : '<span class="badge badge-cyan">CACHED</span>'));
 
-      if (isHit) {
-        sidecarBadge = `<span class="badge badge-green" style="font-size:0.6rem;">HIT (0.4ms RAM #${hitCount})</span>`;
-        actionCell = `<span style="color:#34d399; font-weight:700;">GET ➔ 200 OK</span>`;
-        statusBadge = '<span class="badge badge-green">CACHE HIT</span>';
-      }
+      const isHit = eventType === "CACHE HIT";
+      const eventBadge = isHit
+        ? `<span class="badge badge-green">HIT (0.4ms)</span>`
+        : `<span class="badge badge-rose">MISS ➔ DB FETCH</span>`;
 
       tr.innerHTML = `
-        <td style="color:var(--text-dim);">${now}</td>
-        <td style="font-weight:700; color:#fff;">${key}</td>
-        <td>${sidecarBadge}</td>
-        <td style="color:#38bdf8; font-weight:600;">${lstmPop.toFixed(3)}</td>
-        <td style="color:#d8b4fe;">${arimaPop.toFixed(3)}</td>
-        <td><span class="badge badge-cyan">${winner}</span></td>
-        <td style="color:#fbbf24; font-weight:600;">${vol.toFixed(3)}</td>
-        <td style="color:var(--cyan); font-weight:700;">${ttl.toLocaleString()}s</td>
-        <td style="color:var(--text-dim);">300s</td>
-        <td>${actionCell}</td>
+        <td style="color:var(--text-dim); font-family:var(--font-mono);">${now}</td>
+        <td style="font-weight:700;">${key}</td>
+        <td>${eventBadge}</td>
+        <td style="font-family:var(--font-mono); font-weight:600; color:var(--purple);">${pop.toFixed(3)}</td>
+        <td><span class="badge badge-purple">${winner}</span></td>
+        <td style="font-family:var(--font-mono); font-weight:600; color:var(--amber);">${vol.toFixed(3)}</td>
+        <td style="font-family:var(--font-mono); font-weight:700; color:var(--blue-primary);">${ttl.toLocaleString()}s</td>
+        <td style="font-family:var(--font-mono); color:var(--text-dim);">300s</td>
+        <td style="font-family:var(--font-mono); font-weight:600; color:${isHit ? 'var(--emerald)' : 'var(--blue-primary)'};">${action}</td>
       `;
+
       tbody.insertBefore(tr, tbody.firstChild);
-      while (tbody.children.length > 25) tbody.removeChild(tbody.lastChild);
+      while (tbody.children.length > 20) tbody.removeChild(tbody.lastChild);
     }
 
-    function pushChart(lstmTtl, arimaTtl) {
+    function updateCharts(ttl) {
       const now = new Date().toTimeString().split(' ')[0];
-      if (compChart.data.labels.length > 15) {
-        compChart.data.labels.shift();
-        compChart.data.datasets[0].data.shift();
-        compChart.data.datasets[1].data.shift();
-        compChart.data.datasets[2].data.shift();
-      }
-      compChart.data.labels.push(now);
-      compChart.data.datasets[0].data.push(lstmTtl);
-      compChart.data.datasets[1].data.push(arimaTtl);
-      compChart.data.datasets[2].data.push(300);
-      compChart.update();
 
+      // 1. TTL Chart
+      if (ttlChart.data.labels.length > 14) {
+        ttlChart.data.labels.shift();
+        ttlChart.data.datasets[0].data.shift();
+        ttlChart.data.datasets[1].data.shift();
+      }
+      ttlChart.data.labels.push(now);
+      ttlChart.data.datasets[0].data.push(ttl);
+      ttlChart.data.datasets[1].data.push(300);
+      ttlChart.update();
+
+      // 2. Hit Rate Simulation
       simTotal++;
-      if (lstmTtl > 600) simAdaptiveHits += (Math.random() < 0.95 ? 1 : 0);
-      else simAdaptiveHits += (Math.random() < 0.88 ? 1 : 0);
+      if (ttl > 500) simAdaptiveHits += (Math.random() < 0.94 ? 1 : 0);
+      else simAdaptiveHits += (Math.random() < 0.85 ? 1 : 0);
       simFixedHits += (Math.random() < 0.65 ? 1 : 0);
 
-      const hitAdapt = (simAdaptiveHits / simTotal) * 100;
-      const hitFixed = (simFixedHits / simTotal) * 100;
+      const adaptRate = ((simAdaptiveHits / simTotal) * 100).toFixed(1);
+      const fixedRate = ((simFixedHits / simTotal) * 100).toFixed(1);
 
-      if (hitChart.data.labels.length > 15) {
+      if (hitChart.data.labels.length > 14) {
         hitChart.data.labels.shift();
         hitChart.data.datasets[0].data.shift();
         hitChart.data.datasets[1].data.shift();
       }
       hitChart.data.labels.push(now);
-      hitChart.data.datasets[0].data.push(hitAdapt.toFixed(1));
-      hitChart.data.datasets[1].data.push(hitFixed.toFixed(1));
+      hitChart.data.datasets[0].data.push(adaptRate);
+      hitChart.data.datasets[1].data.push(fixedRate);
       hitChart.update();
+
+      const diff = Math.max(0, Math.round(adaptRate - fixedRate));
+      document.getElementById('hitDiffBadge').textContent = `+${diff}% Hit Ratio Gain`;
     }
 
     function onSelectChange() {
@@ -1271,23 +1252,29 @@
       evaluateKey(key);
     }
 
-    function applyPreset(p) {
-      if (p === 'read_heavy') {
+    function invalidateCurrentKey() {
+      const key = document.getElementById('keySelect').value;
+      delete redisCache[key];
+      evaluateKey(key, true);
+    }
+
+    function applyPreset(preset) {
+      if (preset === 'read_heavy') {
         document.getElementById('keySelect').value = "twitter:key:1";
         delete redisCache["twitter:key:1"];
         evaluateKey("twitter:key:1", true, 0.0, false);
-      } else if (p === 'write_storm') {
+      } else if (preset === 'write_storm') {
         document.getElementById('keySelect').value = "twitter:key:6";
-        delete redisCache["twitter:key:6"]; // DB Write event invalidates existing cached entry
+        delete redisCache["twitter:key:6"];
         evaluateKey("twitter:key:6", true, 0.45, false);
-      } else if (p === 'stampede') {
+      } else if (preset === 'stampede') {
         const key = document.getElementById('keySelect').value;
         delete redisCache[key];
         evaluateKey(key, true, null, true);
-      } else if (p === 'prewarm') {
+      } else if (preset === 'prewarm') {
         const key = document.getElementById('keySelect').value;
         delete redisCache[key];
-        evaluateKey(key, true, 0.0, false, 3600);
+        evaluateKey(key, true, 0.0, false, 1800);
       }
     }
 
@@ -1295,35 +1282,37 @@
       document.getElementById('telemetryBody').innerHTML = '';
     }
 
-    function round4(v) { return Math.round(v * 10000) / 10000; }
-    function min(a, b) { return a < b ? a : b; }
-    function max(a, b) { return a > b ? a : b; }
-
-    async function checkApi() {
+    async function checkApiHealth() {
       try {
         const res = await fetch('http://localhost:5001/api/v1/dashboard/stats');
         if (res.ok) {
           isApiLive = true;
-          document.getElementById('statusBadge').textContent = 'Live API: Connected';
-          document.getElementById('statusBadge').className = 'badge badge-green';
-        } else {
-          isApiLive = false;
-          document.getElementById('statusBadge').textContent = 'Simulation Mode';
-          document.getElementById('statusBadge').className = 'badge badge-amber';
+          const data = await res.json();
+          document.getElementById('apiStatusBadge').textContent = 'Port 5001 Active';
+          document.getElementById('apiStatusBadge').className = 'badge badge-green';
+
+          if (data.cdc_telemetry && data.cdc_telemetry.connected) {
+            document.getElementById('cdcStatusBadge').textContent = 'Kafka Stream: Active';
+            document.getElementById('cdcStatusBadge').className = 'badge badge-blue';
+          }
+
+          if (data.orchestration_telemetry && data.orchestration_telemetry.total_events > 0) {
+            document.getElementById('orchestrationEventBadge').textContent = `Orchestrator: ${data.orchestration_telemetry.total_events} Events Consumed`;
+            document.getElementById('orchestrationEventBadge').className = 'badge badge-green';
+          }
         }
       } catch (e) {
         isApiLive = false;
-        document.getElementById('statusBadge').textContent = 'Simulation Mode';
-        document.getElementById('statusBadge').className = 'badge badge-amber';
+        document.getElementById('apiStatusBadge').textContent = 'Offline (Simulated)';
+        document.getElementById('apiStatusBadge').className = 'badge badge-amber';
       }
     }
 
     window.addEventListener('DOMContentLoaded', () => {
       initCharts();
-      renderKeyChips();
+      checkApiHealth();
       onSelectChange();
-      checkApi();
-      setInterval(checkApi, 5000);
+      setInterval(checkApiHealth, 5000);
     });
   </script>
 </body>

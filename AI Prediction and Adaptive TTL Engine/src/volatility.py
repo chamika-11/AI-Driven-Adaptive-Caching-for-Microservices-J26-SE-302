@@ -54,53 +54,32 @@ class VolatilityEngine:
         Returns:
             Volatility score in [0.0, 1.0].
         """
-        ts_col = db_update_df["timestamp"]
-        
-        # If the system clock is ahead of the trace dataset, align the 1-hour window to the trace timeline
-        if not db_update_df.empty:
-            max_trace_time = ts_col.max()
-            if ts_col.dt.tz is not None and current_time.tzinfo is None:
-                current_time = current_time.tz_localize(ts_col.dt.tz)
-            
-            if current_time > max_trace_time:
-                # Align relative to the trace activity window (with key-specific offset for realism)
-                key_seed = sum(ord(c) for c in key) % 24
-                ref_time = max_trace_time - pd.Timedelta(hours=key_seed)
-                one_hour_ago = ref_time - pd.Timedelta(hours=1)
-                mask = (db_update_df["cache_key"] == key) & (ts_col >= one_hour_ago) & (ts_col <= ref_time)
-            else:
-                one_hour_ago = current_time - pd.Timedelta(hours=1)
-                mask = (db_update_df["cache_key"] == key) & (ts_col >= one_hour_ago)
+        # Check if live CDC mutations already set a higher volatility for this key
+        live_vol = self._volatilities.get(key, 0.0)
+
+        # Calculate base mutation rate from DB update records
+        if not db_update_df.empty and "cache_key" in db_update_df.columns:
+            key_updates = db_update_df[db_update_df["cache_key"] == key]
+            write_count = len(key_updates)
+            # Normalise: 100 writes/hr = 1.0 (e.g., 34 writes in trace = 0.340)
+            base_rate = round(min(1.0, write_count / 100.0), 3)
         else:
-            recent_count = 0
-            mask = []
-        recent_count = mask.sum()
+            base_rate = 0.0
 
-        # Convert raw count → normalised updates-per-minute (capped at 1.0)
-        updates_per_minute = recent_count / 60.0
-        current_rate = min(updates_per_minute * 10, 1.0)
+        current_rate = max(base_rate, live_vol)
 
-        # EWMA formula: Vol(t) = α * current_rate + (1 - α) * Vol(t-1)
+        # EWMA update: Vol(t) = α * current_rate + (1 - α) * Vol(t-1)
         if key not in self._volatilities:
             self._volatilities[key] = current_rate
-            logger.debug(
-                "New volatility entry for key='%s': rate=%.4f", key, current_rate
-            )
         else:
             prev = self._volatilities[key]
-            self._volatilities[key] = (
+            # Smoothly update while preserving live CDC spikes
+            self._volatilities[key] = max(
+                live_vol,
                 self.alpha * current_rate + (1.0 - self.alpha) * prev
             )
-            logger.debug(
-                "Volatility update for key='%s': prev=%.4f rate=%.4f new=%.4f",
-                key,
-                prev,
-                current_rate,
-                self._volatilities[key],
-            )
 
-        # Clamp to [0, 1]
-        score = max(0.0, min(1.0, self._volatilities[key]))
+        score = max(0.0, min(1.0, round(self._volatilities[key], 3)))
         return score
 
     def record_mutation(self, key: str, weight: float = 0.5) -> float:
